@@ -1,1 +1,46 @@
+import React, { useState } from "react";
+import ReactDOM from "react-dom";
 
+const App = () => { ////good, neutreal, bad state counter of button
+const [good, setGood] = useState(0);
+const [neutral, setNeutral] = useState(0);
+const [bad, setBad] = useState(0);
+
+const resetCounts = () => { ///reset counter of button
+setGood(0);
+setNeutral(0);
+setBad(0);
+};
+
+const totalFeedback = good + neutral + bad; ////total
+const averageScore = totalFeedback > 0 ? (good + neutral + bad) / 3 : 0; ///average
+const positiveFeedbackPercentage = totalFeedback > 0 ? ((good + neutral) / totalFeedback) * 100 : 0; ////The percentage of positive feedback
+
+return (
+<div>
+<h1>Please Give Feedback!</h1>
+<br />
+<button onClick={() => setGood(good + 1)}>Good</button>
+<button onClick={() => setNeutral(neutral + 1)}>Neutral</button>
+<button onClick={() => setBad(bad + 1)}>Bad</button>
+<button onClick={resetCounts}>Reset</button>
+<br />
+{totalFeedback > 0 ? ( ////No feedback given yet
+<div>
+<h1>Statistics</h1>
+<br />
+<h3>Good: {good}</h3>
+<h3>Neutral: {neutral}</h3>
+<h3>Bad: {bad}</h3>
+<h3>All: {totalFeedback}</h3>
+<h3>The average score: {averageScore}</h3>
+<h3>The percentage of positive feedback: {positiveFeedbackPercentage}%</h3>
+</div>
+) : (
+<h1>No feedback given yet</h1>
+)}
+</div>
+);
+};
+
+export default App;
