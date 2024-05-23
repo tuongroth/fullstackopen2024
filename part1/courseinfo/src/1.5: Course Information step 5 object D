@@ -1,6 +1,11 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+
 const App = () => {
-    const course = 'Half Stack application development';
-    const parts = [
+  const course = {
+    name: 'Half Stack application development',
+    parts: [
       {
         name: 'Fundamentals of React',
         exercises: 10
@@ -13,40 +18,34 @@ const App = () => {
         name: 'State of a component',
         exercises: 14
       }
-    ];
-  
-  
-    const Header = ({course} ) => (
-      <h1>course </h1> ///render course not prop ///({course} )not (course )
-    );
-  
-  
-    const Content = ({ parts }) => (
-      <div>
-        {parts.map(part => (
-          <div >
-            {part.name} - {part.exercises}
-          </div>
-        ))}
-      </div>
-    );
-    
-    const Total = ({ parts }) => (
-      <div>
-        Total exercises: {parts.reduce((acc, part) => acc + part.exercises, 0)}
-      </div>
-    );
-    
-    
-    
-      return (
-        <div>
-          <Header parts={course} />
+    ]
+  };
+
+
+  // Update the name property
+  course.name = 'Fundamentals of React';
+
+
+  // Add a new property using dot notation
+  course.teacher = 'John Doe';
+
+
+  // Add a new property using bracket notation
+  course['language'] = 'JavaScript';
+
+
+  console.log(course); // Output the updated course object
+
+
+  return (
+    <div>
+     <Header parts={course} />
           <Content parts={parts} />
           <Total parts={parts} />
-        </div>
-      );
-    };
-    
-    export default App;
+    </div>
+  );
+};
+
+export default App;
+
   
