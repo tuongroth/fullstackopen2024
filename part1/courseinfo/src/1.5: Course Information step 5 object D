@@ -34,14 +34,15 @@ const App = () => {
   course['language'] = 'JavaScript';
 
 
-  console.log(course); // Output the updated course object
+  console.log(course); 
 
 
-  return (
+ return (
     <div>
-     <Header parts={course} />
-          <Content parts={parts} />
-          <Total parts={parts} />
+      <h1>{course.name}</h1>
+      <p>{course.parts[0].name} {course.parts[0].exercises}</p>
+      <p>{course.parts[1].name} {course.parts[1].exercises}</p>
+      <p>{course.parts[2].name} {course.parts[2].exercises}</p>
     </div>
   );
 };
