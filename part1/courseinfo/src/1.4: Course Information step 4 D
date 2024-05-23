@@ -17,7 +17,7 @@ const App = () => {
   
   
     const Header = ({course} ) => (
-      <h1>course </h1> ///render course not prop ///({course} )not (course )
+      <h1>course </h1> ///render course not prop ///  Use course and parts variable
     );
   
   
