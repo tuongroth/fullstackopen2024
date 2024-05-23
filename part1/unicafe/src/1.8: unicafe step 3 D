@@ -17,7 +17,7 @@ const [bad, setBad] = useState(0);
 			
 return (			
 <div>			
-<h1>1.8: unicafe step 3 - Feedback App</h1>			
+<h1>Feedback App</h1>			
 <button onClick={() => setGood(good + 1)}>Good</button>			
 <button onClick={() => setNeutral(neutral + 1)}>Neutral</button>			
 <button onClick={() => setBad(bad + 1)}>Bad</button>			
@@ -26,4 +26,4 @@ return (
 );			
 };			
 			
-export default App;			
+export default App;						
