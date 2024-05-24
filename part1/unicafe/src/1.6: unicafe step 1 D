@@ -1,0 +1,24 @@
+import React, { useState } from "react";	
+
+const App = () => {										///state
+const [good, setGood] = useState(0);										
+const [neutral, setNeutral] = useState(0);										
+const [bad, setBad] = useState(0);			
+
+return (				///button						
+<div>										
+<h1>1.6: unicafe step 1: Give Feedback!</h1>										
+<br />										
+<button onClick={() => setGood(good + 1)}>Good</button>										
+<button onClick={() => setNeutral(neutral + 1)}>Neutral</button>										
+<button onClick={() => setBad(bad + 1)}>Bad</button>										
+<br />								
+		
+<h1>Statistics</h1>																		
+<h3>Good: {good}</h3>										
+<h3>Neutral: {neutral}</h3>										
+<h3>Bad: {bad}</h3>										
+</div>					///counter					
+);										
+};																		
+export default App;
