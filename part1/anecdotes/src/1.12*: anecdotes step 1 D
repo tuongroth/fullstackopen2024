@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 const App = () => {
+  // List of anecdotes
   const anecdotes = [
     'If it hurts, do it more often.',
     'Adding manpower to a late software project makes it later!',
@@ -12,19 +13,25 @@ const App = () => {
     'The only way to go fast, is to go well.'
   ];
   
+  // State to keep track of the currently selected anecdote
   const [selected, setSelected] = useState(0);
 
+  // Function to get a random integer up to the max value
+  const getRandomInt = (max) => {
+    return Math.floor(Math.random() * max);
+  };
+
+  // Event handler to set a random anecdote
   const handleNextAnecdote = () => {
-    const randomIndex = Math.floor(Math.random() * anecdotes.length);
-    setSelected(randomIndex);
+    const randomIndex = getRandomInt(anecdotes.length); // Generate a random index
+    setSelected(randomIndex); // Update state with the new index
   };
 
   return (
     <div>
-      {anecdotes[selected]}
-      <h1>1.12*: anecdotes step 1</h1>
-      <br />
-      <button onClick={handleNextAnecdote}>Next Anecdote</button>
+      <h1>Anecdote of the Day</h1> {/* Header Element */}
+      <p>{anecdotes[selected]}</p> {/* Displaying the Selected Anecdote */}
+      <button onClick={handleNextAnecdote}>Next Anecdote</button> {/* Button Element with Event Handler */}
     </div>
   );
 };
