@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 
 const App = () => {
-  // List of anecdotes
   const anecdotes = [
     'If it hurts, do it more often.',
     'Adding manpower to a late software project makes it later!',
@@ -12,26 +11,30 @@ const App = () => {
     'Programming without an extremely heavy use of console.log is same as if a doctor would refuse to use x-rays or blood tests when diagnosing patients.',
     'The only way to go fast, is to go well.'
   ];
-  
-  // State to keep track of the currently selected anecdote
-  const [selected, setSelected] = useState(0);
 
-  // Function to get a random integer up to the max value
-  const getRandomInt = (max) => {
-    return Math.floor(Math.random() * max);
+  const [selected, setSelected] = useState(0);
+  const [votes, setVotes] = useState(new Array(anecdotes.length).fill(0)); ///// State to keep track of votes for each anecdote
+
+  const handleNextAnecdote = () => {
+    const randomIndex = Math.floor(Math.random() * anecdotes.length);
+    setSelected(randomIndex);
   };
 
-  // Event handler to set a random anecdote
-  const handleNextAnecdote = () => {
-    const randomIndex = getRandomInt(anecdotes.length); // Generate a random index
-    setSelected(randomIndex); // Update state with the new index
+  const handleVote = () => {// Event handler to vote for the current anecdote
+    const newVotes = [...votes];
+    newVotes[selected] += 1;
+    setVotes(newVotes); 
   };
 
   return (
     <div>
-      <h1>Anecdote of the Day</h1> {/* Header Element */}
-      <p>{anecdotes[selected]}</p> {/* Displaying the Selected Anecdote */}
-      <button onClick={handleNextAnecdote}>Next Anecdote</button> {/* Button Element with Event Handler */}
+      <div>
+        <p>{anecdotes[selected]}</p>
+        <p>Has {votes[selected]} votes</p> {/* Displaying the vote count for the selected anecdote */}
+      </div>
+      <h1>1.13*: anecdotes step 2</h1>
+      <button onClick={handleVote}>Vote</button>{/* Button to vote for the selected anecdote */}
+      <button onClick={handleNextAnecdote}>Next Anecdote</button>
     </div>
   );
 };
