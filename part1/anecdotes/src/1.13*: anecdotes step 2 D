@@ -13,18 +13,33 @@ const App = () => {
   ];
 
   const [selected, setSelected] = useState(0);
-  const [votes, setVotes] = useState(new Array(anecdotes.length).fill(0));
+  const [votes, setVotes] = useState(new Array(anecdotes.length).fill(0)); ///// State to keep track of votes for each anecdote
 
   const handleNextAnecdote = () => {
     const randomIndex = Math.floor(Math.random() * anecdotes.length);
     setSelected(randomIndex);
   };
 
-  const handleVote = () => {
+  const handleVote = () => {// Event handler to vote for the current anecdote
     const newVotes = [...votes];
     newVotes[selected] += 1;
-    setVotes(newVotes);
+    setVotes(newVotes); 
   };
+
+  return (
+    <div>
+      <div>
+        <p>{anecdotes[selected]}</p>
+        <p>Has {votes[selected]} votes</p> {/* Displaying the vote count for the selected anecdote */}
+      </div>
+      <h1>1.13*: anecdotes step 2</h1>
+      <button onClick={handleVote}>Vote</button>{/* Button to vote for the selected anecdote */}
+      <button onClick={handleNextAnecdote}>Next Anecdote</button>
+    </div>
+  );
+};
+
+export default App;
 
   return (
     <div>
