@@ -1,68 +1,67 @@
-import React, { useState } from 'react';			
-			
-const FeedbackApp = () => {			
-const [good, setGood] = useState(22);			
-const [neutral, setNeutral] = useState(45);			
-const [bad, setBad] = useState(29);			
-			
-const handleGoodClick = () => setGood(good + 1);			
-const handleNeutralClick = () => setNeutral(neutral + 1);			
-const handleBadClick = () => setBad(bad + 1);			
-			
-const total = good + neutral + bad;			
-const average = total > 0 ? (good - bad) / total : 0;			
-const positivePercentage = total > 0 ? (good / total) * 100 : 0;			
-			
-return (			
-<div>			
-<h1> 1.11*: unicafe step 6</h1>			
-<table>			
-<caption>			
-Give me feedback!			
-</caption>			
-<tr><td scope="col" colspan="2"> <div>			
-<button onClick={handleGoodClick}>Good</button>			
-<button onClick={handleNeutralClick}>Neutral</button>			
-<button onClick={handleBadClick}>Bad</button>			
-</div></td> </tr>			
-			
-			
-<thead>			
-<tr>			
-<th scope="col" colspan="2">Statistics</th>			
-</tr>			
-</thead>			
-<tbody>			
-<tr>			
-<td scope="row">Good</td>			
-<td>{good}</td>			
-</tr>			
-<tr>			
-<td scope="row">Neutral</td>			
-<td>{neutral}</td>			
-</tr>			
-<tr>			
-<td scope="row">Bad</td>			
-<td>{bad}</td>			
-</tr>			
-<tr>			
-<td scope="row">All</td>			
-<td>{total}</td>			
-</tr>			
-<tr>			
-<td scope="row">Average</td>			
-<td>{average.toFixed(2)}</td>			
-</tr>			
-<tr>			
-<td scope="row">Positive Percentage</td>			
-<td>{positivePercentage.toFixed(2)}%</td>			
-</tr>			
-</tbody>			
-<tfoot>			
-</tfoot>			
-</table>			
-</div>			
-);			
-};			
-			
-export default FeedbackApp;							
+import React, { useState } from 'react';
+
+const FeedbackApp = () => {
+  // State variables to keep track of feedback counts
+  const [good, setGood] = useState(22);
+  const [neutral, setNeutral] = useState(45);
+  const [bad, setBad] = useState(29);
+
+  // Event handlers to update state
+  const handleGoodClick = () => setGood(good + 1);
+  const handleNeutralClick = () => setNeutral(neutral + 1);
+  const handleBadClick = () => setBad(bad + 1);
+
+  // Calculations for total feedback, average score, and positive feedback percentage
+  const total = good + neutral + bad;
+  const average = total > 0 ? (good - bad) / total : 0;
+  const positivePercentage = total > 0 ? (good / total) * 100 : 0;
+
+  return (
+    <div>
+      <h1>1.11*: unicafe step 6</h1>
+      <h2>Give feedback</h2>
+      <div>
+        <button onClick={handleGoodClick}>Good</button>
+        <button onClick={handleNeutralClick}>Neutral</button>
+        <button onClick={handleBadClick}>Bad</button>
+      </div>
+      <h2>Statistics</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Feedback Type</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Good</td>
+            <td>{good}</td>
+          </tr>
+          <tr>
+            <td>Neutral</td>
+            <td>{neutral}</td>
+          </tr>
+          <tr>
+            <td>Bad</td>
+            <td>{bad}</td>
+          </tr>
+          <tr>
+            <td>All</td>
+            <td>{total}</td>
+          </tr>
+          <tr>
+            <td>Average</td>
+            <td>{average.toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>Positive Percentage</td>
+            <td>{positivePercentage.toFixed(2)}%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export default FeedbackApp;
