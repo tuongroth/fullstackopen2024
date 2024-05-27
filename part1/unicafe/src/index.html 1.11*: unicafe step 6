@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>To Do</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <style>
+    table {
+  width: 100%;
+  border-collapse: collapse; /* Ensures borders do not double up */
+  margin-top: 20px;
+}
+
+th, td {
+  border: 1px solid black; /* Adds borders to all table cells */
+  padding: 8px;
+  text-align: left;
+}
+
+thead {
+  background-color: #f2f2f2; /* Optional: Adds background color to table header */
+}
+</style>
+  </body>
+
+
+  
+</html>
