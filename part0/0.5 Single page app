@@ -1,0 +1,16 @@
+sequenceDiagram
+
+
+Browser->>Server: https://studies.cs.helsinki.fi/exampleapp/spa
+
+Browser-->>Server: HTTP status code 200 (HTML-spa)
+Browser->>Server: https://studies.cs.helsinki.fi/exampleapp/main.css
+
+Browser-->>Server: HTTP status code 200 (main.css)
+Browser->>Server: https://studies.cs.helsinki.fi/exampleapp/main.js
+Browser-->>Server: HTTP status code 200(spa.js)
+Browser->>Server: https://studies.cs.helsinki.fi/exampleapp/data.json
+Note right of Browser: The browser start excuting Javascript code that fetch the JSON from server!
+Browser-->>Server: {{"Content": "from data is sent with HTTP post", "date": "2019-25-5"}]
+
+Note right of Browser: The browser executes the callback function that render the notes.
