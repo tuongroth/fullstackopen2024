@@ -1,0 +1,9 @@
+sequenceDiagram
+
+
+Browser->>Server: https://studies.cs.helsinki.fi/exampleapp/new_note_spa
+
+Browser-->>Server: HTTP status code 201 (HTML-spa)
+
+
+Note right of Browser: With single page application, browser stay on the same page
