@@ -1,0 +1,19 @@
+
+sequenceDiagram
+
+Browser->>Server: https://studies.cs.helsinki.fi/exampleapp/new_note
+Browser-->>Server: HTTP status code 302
+Note right of Browser: URL Redirect, which serve ask browser to do HTTP GET request to the address define in the header's location- the address notes
+Browser->>Server: https://studies.cs.helsinki.fi/exampleapp/notes
+
+Browser-->>Server: HTTP status code 200 (HTML-notes)
+Browser->>Server: https://studies.cs.helsinki.fi/exampleapp/main.css
+
+Browser-->>Server: HTTP status code 200 (main.css)
+Browser->>Server: https://studies.cs.helsinki.fi/exampleapp/main.js
+Browser-->>Server: HTTP status code 200(main.js)
+Browser->>Server: https://studies.cs.helsinki.fi/exampleapp/data.json
+Note right of Browser: The browser start excuting Javascript code that fetch the JSON from server!
+Browser-->>Server: {{"Content": "from data is sent with HTTP post", "date": "2019-25-5"}]
+
+Note right of Browser: The browser executes the callback function that render the notes.
