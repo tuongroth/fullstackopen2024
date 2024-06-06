@@ -66,5 +66,46 @@ const App = () => {
         {
           name: 'Using props to pass data',
           exercises: 7,
+          id: 2
+        },
+        {
+          name: 'State of a component',
+          exercises: 14,
+          id: 3
+        }
+      ]
+    },
+    {
+      id: 2,
+      name: 'Node.js',
+      parts: [
+        {
+          name: 'Routing',
+          exercises: 3,
+          id: 1
+        },
+        {
+          name: 'Middlewares',
+          exercises: 7,
+          id: 2
+        }
+      ]
+    }
+  ];
+
+  // Render multiple Course components based on the courses array
+  return (
+    <div>
+      {courses.map(course => (
+        <Course key={course.id} course={course} />
+      ))}
+    </div>
+  );
+};
+
+// Render the App component into the DOM
+ReactDOM.render(<App />, document.getElementById('root'));
+
+
 
 export default App;
