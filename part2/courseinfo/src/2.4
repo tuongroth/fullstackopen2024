@@ -1,8 +1,62 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+// Course component with its subcomponents
+const Course = ({ course }) => (
+  <div>
+    {/* Header component displaying the course name */}
+    <Header name={course.name} />
+    {/* Content component displaying the course parts */}
+    <Content parts={course.parts} />
+    {/* Total component calculating and displaying the total number of exercises */}
+    <Total parts={course.parts} />
+  </div>
+);
+
+// Header component displaying the course name
+const Header = ({ name }) => {
+  return <h1>{name}</h1>;
+};
+
+// Content component displaying the course parts
+const Content = ({ parts }) => {
+  return (
+    <div>
+      {/* Mapping through parts and rendering a Part component for each */}
+      {parts.map(part => (
+        <Part key={part.id} part={part} />
+      ))}
+    </div>
+  );
+};
+
+// Part component displaying the name and exercises for each part
+const Part = ({ part }) => {
+  return (
+    <p>
+      {part.name} {part.exercises}
+    </p>
+  );
+};
+
+// Total component calculating and displaying the total number of exercises
+const Total = ({ parts }) => {
+  // Calculate the total number of exercises
+  let total = 0;
+  for (let i = 0; i < parts.length; i++) {
+    total += parts[i].exercises;
+  }
+  // Display the total number of exercises
+  return <p>Total of {total} exercises</p>;
+};
+
+// App component rendering multiple courses
 const App = () => {
+  // Array of course objects
   const courses = [
     {
-      name: 'Half Stack application development',
       id: 1,
+      name: 'Half Stack application development',
       parts: [
         {
           name: 'Fundamentals of React',
@@ -12,54 +66,5 @@ const App = () => {
         {
           name: 'Using props to pass data',
           exercises: 7,
-          id: 2
-        },
-        {
-          name: 'State of a component',
-          exercises: 14,
-          id: 3
-        },
-        {
-          name: 'Redux',
-          exercises: 11,
-          id: 4
-        }
-      ]
-    }, 
-    {
-      name: 'Node.js',
-      id: 2,
-      parts: [
-        {
-          name: 'Routing',
-          exercises: 3,
-          id: 1
-        },
-        {
-          name: 'Middlewares',
-          exercises: 7,
-          id: 2
-        }
-      ]
-    }
-  ];
-
-  return (
-    <div>
-      {courses.map(course => (
-        <div key={course.id}>
-          <h2>{course.name}</h2>
-          <ul>
-            {course.parts.map(part => (
-              <li key={part.id}>
-                {part.name} - {part.exercises} exercises
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </div>
-  );
-};
 
 export default App;
