@@ -1,36 +1,36 @@
-import { useState } from 'react';
+import { useState } from 'react'; ///The useState hook is used to add state variables to functional components in React.
 
 const App = () => {
   const [persons, setPersons] = useState([{ name: 'Arto Hellas' }]);
   const [newName, setNewName] = useState('');
 
-  const handleNameChange = (event) => {
-    setNewName(event.target.value);
+  const handleNameChange = (event) => { ///Handling Name Input Changes
+    setNewName(event.target.value);///updates the newName state to the current value of the input field (event.target.value)
   };
 
   const addPerson = (event) => {
-    event.preventDefault(); // Prevent form submission from refreshing the page
+    event.preventDefault(); // *Prevent form submission from refreshing the page
     const personObject = {
       name: newName
     };
-    setPersons(persons.concat(personObject)); // Add new name to the list
-    setNewName(''); // Clear the input field
+    setPersons(persons.concat(personObject)); //*Concatenates new person object to persons array
+    setNewName(''); // resets the newName state to an empty string, effectively clearing the input field after adding a person.
   };
 
   return (
     <div>
       <h2>Phonebook</h2>
-      <form onSubmit={addPerson}>
+      <form onSubmit={addPerson}> {/*  a form that calls addPerson function on submission. */}
         <div>
-          name: <input value={newName} onChange={handleNameChange} />
-        </div>
+          name: <input value={newName} onChange={handleNameChange}  />   {/* an input field bound to newName state, with onChange event handling in handleNameChange. */}
+        </div> 
         <div>
-          <button type="submit">add</button>
+          <button type="submit">add</button> {/*  a submit button inside the form. */}
         </div>
       </form>
       <h2>Numbers</h2>
       <ul>
-        {persons.map(person => (
+        {persons.map(person => ( ///<ul> renders a list of <li> elements using persons.map()
           <li key={person.name}>{person.name}</li>
         ))}
       </ul>
@@ -41,3 +41,7 @@ const App = () => {
 };
 
 export default App;
+
+
+
+
