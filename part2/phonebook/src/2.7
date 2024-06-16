@@ -1,32 +1,32 @@
 import React, { useState } from 'react';
-
+///Initialize state variables using useState
 const App = () => {
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [persons, setPersons] = useState([
     { name: 'Arto Hellas', number: '1234567890', id: 1 }
   ]);
-
+///Adding a Person to the Phonebook:
   const addPerson = (event) => {
     event.preventDefault();
 
-    // Check if newName already exists in persons array
-    if (persons.some(person => person.name === newName)) {
-      alert(`${newName} is already added to the phonebook`);
-      return;
+
+    if (persons.some(person => person.name === newName)) {///* Check if newName already exists in persons array
+      alert(`${newName} is already added to the phonebook`); ///Alert if duplicate name
+      return; ///// Exit function if name already exists
     }
 
-    const personObject = {
+    const personObject = { ///*// Create new person object
       name: newName,
       number: newNumber,
-      id: persons.length + 1
+      id: persons.length + 1 ///// Generate unique id based on current length of persons array
     };
 
-    setPersons(persons.concat(personObject));
+    setPersons(persons.concat(personObject));///// Update persons state by concatenating new personObject
     setNewName('');
     setNewNumber('');
   };
-
+///Event handler to update state when input changes
   const handleNameChange = (event) => {
     setNewName(event.target.value);
   };
@@ -38,15 +38,15 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <form onSubmit={addPerson}>
+      <form onSubmit={addPerson}> {/* Form for adding new persons */}
         <div>
-          name: <input value={newName} onChange={handleNameChange} />
+          name: <input value={newName} onChange={handleNameChange} /> {/* Input field for name */}
         </div>
         <div>
-          number: <input value={newNumber} onChange={handleNumberChange} />
+          number: <input value={newNumber} onChange={handleNumberChange} />{/* Input field for number */}
         </div>
         <div>
-          <button type="submit">add</button>
+          <button type="submit">add</button> {/* Submit button to add new person */}
         </div>
       </form>
       <h2>Numbers</h2>
@@ -58,3 +58,7 @@ const App = () => {
 };
 
 export default App;
+
+
+
+
