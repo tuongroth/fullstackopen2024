@@ -7,34 +7,49 @@ const App = () => {
     { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
     { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 }
   ]);
-  const [newName, setNewName] = useState('');
-  const [newNumber, setNewNumber] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [newName, setNewName] = useState(''); // State for new name input
+  const [newNumber, setNewNumber] = useState(''); // State for new number input
+  const [searchTerm, setSearchTerm] = useState(''); // State for search input
 
+  // Event handler for name input change
   const handleNameChange = (event) => {
     setNewName(event.target.value);
   };
 
+  // Event handler for number input change
   const handleNumberChange = (event) => {
     setNewNumber(event.target.value);
   };
 
+  // Event handler for search input change
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
   };
 
+  // Form submission handler to add a new person
   const handleAddPerson = (event) => {
-    event.preventDefault();
+    event.preventDefault(); // Prevent form from refreshing the page
+
+    // Check if the name already exists in the phonebook
+    if (persons.some(person => person.name === newName)) {
+      alert(`${newName} is already added to the phonebook`);
+      return; // Exit the function if name exists
+    }
+
+    // Create a new person object
     const personObject = {
       name: newName,
       number: newNumber,
-      id: persons.length + 1
+      id: persons.length + 1 // Assign a new ID
     };
+
+    // Add the new person to the state and reset input fields
     setPersons(persons.concat(personObject));
     setNewName('');
     setNewNumber('');
   };
 
+  // Filter persons based on the search term
   const personsToShow = persons.filter(person =>
     person.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -43,11 +58,13 @@ const App = () => {
     <div>
       <h2>Phonebook</h2>
 
+      {/* Search input field */}
       <div>
         Filter shown with: <input value={searchTerm} onChange={handleSearchChange} />
       </div>
 
       <h3>Add a new</h3>
+      {/* Form for adding a new person */}
       <form onSubmit={handleAddPerson}>
         <div>
           Name: <input value={newName} onChange={handleNameChange} />
@@ -61,6 +78,7 @@ const App = () => {
       </form>
 
       <h3>Numbers</h3>
+      {/* List of persons */}
       <ul>
         {personsToShow.map(person =>
           <li key={person.id}>{person.name} {person.number}</li>
