@@ -1,0 +1,43 @@
+// src/Weather.js
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const Weather = ({ capital }) => {
+  const [weather, setWeather] = useState(null);
+  const [error, setError] = useState(null);
+  const api_key = import.meta.env.VITE_OPENWEATHERMAP_API_KEY;
+
+  useEffect(() => {
+    axios
+      .get(`https://api.openweathermap.org/data/2.5/weather?q=${capital}&appid=${api_key}&units=metric`)
+      .then(response => {
+        setWeather(response.data);
+      })
+      .catch(error => {
+        setError('Error fetching weather data');
+        console.error(error);
+      });
+  }, [capital, api_key]);
+
+  if (error) {
+    return <div style={{ color: 'red' }}>{error}</div>;
+  }
+
+  if (!weather) {
+    return <div>Loading weather data...</div>;
+  }
+
+  return (
+    <div>
+      <h3>Weather in {capital}</h3>
+      <p>Temperature: {weather.main.temp} °C</p>
+      <p>Weather: {weather.weather[0].description}</p>
+      <img
+        src={`http://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`}
+        alt={weather.weather[0].description}
+      />
+    </div>
+  );
+};
+
+export default Weather;
