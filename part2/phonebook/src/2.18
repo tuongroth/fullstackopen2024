@@ -1,0 +1,77 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const App = () => {
+  const [countries, setCountries] = useState([]);
+  const [search, setSearch] = useState('');
+  const [filteredCountries, setFilteredCountries] = useState([]);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    axios
+      .get('https://studies.cs.helsinki.fi/restcountries/api/all')
+      .then(response => {
+        setCountries(response.data);
+      })
+      .catch(error => {
+        setError('Error fetching country data');
+        console.error(error);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (search) {
+      const results = countries.filter(country =>
+        country.name.common.toLowerCase().includes(search.toLowerCase())
+      );
+      setFilteredCountries(results);
+    } else {
+      setFilteredCountries([]);
+    }
+  }, [search, countries]);
+
+  return (
+    <div>
+      <h1>Country Data</h1>
+      {error && <div style={{ color: 'red' }}>{error}</div>}
+      <input
+        type="text"
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        placeholder="Search for a country..."
+      />
+      {filteredCountries.length > 10 && (
+        <div>Too many matches, please specify another filter</div>
+      )}
+      {filteredCountries.length > 1 && filteredCountries.length <= 10 && (
+        <ul>
+          {filteredCountries.map(country => (
+            <li key={country.cca3}>{country.name.common}</li>
+          ))}
+        </ul>
+      )}
+      {filteredCountries.length === 1 && (
+        <CountryDetail country={filteredCountries[0]} />
+      )}
+    </div>
+  );
+};
+
+const CountryDetail = ({ country }) => {
+  return (
+    <div>
+      <h2>{country.name.common}</h2>
+      <p>Capital: {country.capital}</p>
+      <p>Area: {country.area} km²</p>
+      <img src={country.flags.png} alt={`Flag of ${country.name.common}`} style={{ width: '150px' }} />
+      <h3>Languages:</h3>
+      <ul>
+        {Object.values(country.languages).map(lang => (
+          <li key={lang}>{lang}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default App;
