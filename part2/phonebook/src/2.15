@@ -1,0 +1,86 @@
+import { useState, useEffect } from 'react';
+import personService from './services/persons';
+
+const App = () => {
+  const [persons, setPersons] = useState([]);
+  const [newName, setNewName] = useState('');
+  const [newNumber, setNewNumber] = useState('');
+
+  useEffect(() => {
+    personService.getAll().then(initialPersons => {
+      setPersons(initialPersons);
+    });
+  }, []);
+
+  const addOrUpdatePerson = (event) => {
+    event.preventDefault();
+
+    const person = persons.find(p => p.name === newName);
+    if (person) {
+      const confirmUpdate = window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`);
+      if (confirmUpdate) {
+        const updatedPerson = { ...person, number: newNumber };
+
+        personService
+          .update(person.id, updatedPerson)
+          .then(returnedPerson => {
+            setPersons(persons.map(p => p.id !== person.id ? p : returnedPerson));
+            setNewName('');
+            setNewNumber('');
+          })
+          .catch(error => {
+            alert(`The person '${person.name}' was already deleted from the server`);
+            setPersons(persons.filter(p => p.id !== person.id));
+          });
+      }
+    } else {
+      const personObject = {
+        name: newName,
+        number: newNumber,
+      };
+
+      personService
+        .create(personObject)
+        .then(returnedPerson => {
+          setPersons(persons.concat(returnedPerson));
+          setNewName('');
+          setNewNumber('');
+        });
+    }
+  };
+
+  const handleNameChange = (event) => {
+    setNewName(event.target.value);
+  };
+
+  const handleNumberChange = (event) => {
+    setNewNumber(event.target.value);
+  };
+
+  return (
+    <div>
+      <h2>Phonebook</h2>
+      <form onSubmit={addOrUpdatePerson}>
+        <div>
+          name: <input value={newName} onChange={handleNameChange} />
+        </div>
+        <div>
+          number: <input value={newNumber} onChange={handleNumberChange} />
+        </div>
+        <div>
+          <button type="submit">add</button>
+        </div>
+      </form>
+      <h2>Numbers</h2>
+      <ul>
+        {persons.map(person => (
+          <li key={person.id}>
+            {person.name} {person.number}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default App;
