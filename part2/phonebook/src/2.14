@@ -1,0 +1,76 @@
+// src/App.js
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import Person from './Person';
+
+const App = () => {
+  const [persons, setPersons] = useState([]);
+  const [newName, setNewName] = useState('');
+  const [newNumber, setNewNumber] = useState('');
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    axios
+      .get('http://localhost:3001/persons')
+      .then(response => {
+        setPersons(response.data);
+      })
+      .catch(error => {
+        setError('Error fetching persons data');
+        console.error(error);
+      });
+  }, []);
+
+  const addPerson = (event) => {
+    event.preventDefault();
+    const newPerson = {
+      name: newName,
+      number: newNumber
+    };
+
+    axios
+      .post('http://localhost:3001/persons', newPerson)
+      .then(response => {
+        setPersons(persons.concat(response.data));
+        setNewName('');
+        setNewNumber('');
+      })
+      .catch(error => {
+        setError('Error adding person');
+        console.error(error);
+      });
+  };
+
+  const deletePerson = (id) => {
+    const person = persons.find(p => p.id === id);
+    if (window.confirm(`Delete ${person.name}?`)) {
+      axios
+        .delete(`http://localhost:3001/persons/${id}`)
+        .then(() => {
+          setPersons(persons.filter(p => p.id !== id));
+        })
+        .catch(error => {
+          setError('Error deleting person');
+          console.error(error);
+        });
+    }
+  };
+
+  const handleNameChange = (event) => {
+    setNewName(event.target.value);
+  };
+
+  const handleNumberChange = (event) => {
+    setNewNumber(event.target.value);
+  };
+
+  return (
+    <div>
+      <h1>Phonebook</h1>
+      {error && <div style={{ color: 'red' }}>{error}</div>}
+      <form onSubmit={addPerson}>
+        <div>
+          name: <input value={newName} onChange={handleNameChange} />
+        </div>
+        <div>
+         
