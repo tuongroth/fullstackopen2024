@@ -1,74 +1,25 @@
-import { useState, useEffect } from 'react';
-import noteService from './services/notes';
+// services/persons.js
 
-const App = () => {
-  const [notes, setNotes] = useState([]);
-  const [newNote, setNewNote] = useState('');
+import axios from 'axios';
+const baseUrl = 'http://localhost:3001/persons'; // Replace with your backend URL
 
-  // Fetch initial notes from the server
-  useEffect(() => {
-    noteService
-      .getAll()
-      .then(initialNotes => {
-        setNotes(initialNotes);
-      });
-  }, []);
-
-  // Toggle the importance of a note
-  const toggleImportanceOf = id => {
-    const note = notes.find(n => n.id === id);
-    const changedNote = { ...note, important: !note.important };
-
-    noteService
-      .update(id, changedNote)
-      .then(returnedNote => {
-        setNotes(notes.map(note => note.id !== id ? note : returnedNote));
-      });
-  };
-
-  // Add a new note
-  const addNote = (event) => {
-    event.preventDefault();
-    const noteObject = {
-      content: newNote,
-      important: Math.random() > 0.5
-    };
-
-    noteService
-      .create(noteObject)
-      .then(returnedNote => {
-        setNotes(notes.concat(returnedNote));
-        setNewNote('');
-      });
-  };
-
-  // Handle changes in the new note input field
-  const handleNoteChange = (event) => {
-    setNewNote(event.target.value);
-  };
-
-  return (
-    <div>
-      <h1>Notes</h1>
-      <ul>
-        {notes.map(note =>
-          <li key={note.id}>
-            {note.content}
-            <button onClick={() => toggleImportanceOf(note.id)}>
-              {note.important ? 'make not important' : 'make important'}
-            </button>
-          </li>
-        )}
-      </ul>
-      <form onSubmit={addNote}>
-        <input
-          value={newNote}
-          onChange={handleNoteChange}
-        />
-        <button type="submit">save</button>
-      </form>
-    </div>
-  );
+// Function to fetch all persons
+const getAll = () => {
+  const request = axios.get(baseUrl);
+  return request.then(response => response.data);
 };
 
-export default App;
+// Function to create a new person entry
+const create = newPerson => {
+  const request = axios.post(baseUrl, newPerson);
+  return request.then(response => response.data);
+};
+
+// Function to delete a person entry by id
+const remove = id => {
+  const request = axios.delete(`${baseUrl}/${id}`);
+  return request.then(response => response.data);
+};
+
+// Export the functions to be used by other parts of the application
+export default { getAll, create, remove };
