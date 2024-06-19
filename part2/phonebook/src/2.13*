@@ -1,0 +1,67 @@
+// App.js
+
+import React, { useState, useEffect } from 'react';
+import personsService from './services/persons'; // Import the backend service module
+
+const App = () => {
+  const [persons, setPersons] = useState([]); // State to store the list of persons
+  const [newName, setNewName] = useState(''); // State to store the new person's name input
+  const [newNumber, setNewNumber] = useState(''); // State to store the new person's number input
+
+  // Fetch initial data from the server when the component mounts
+  useEffect(() => {
+    personsService.getAll().then(initialPersons => {
+      setPersons(initialPersons); // Set the fetched data to the persons state
+    });
+  }, []); // Empty dependency array means this effect runs once after the initial render
+
+  // Handle adding a new person to the phonebook
+  const addPerson = (event) => {
+    event.preventDefault(); // Prevent form submission from reloading the page
+    const newPerson = { name: newName, number: newNumber }; // Create a new person object
+
+    personsService.create(newPerson).then(returnedPerson => {
+      setPersons(persons.concat(returnedPerson)); // Add the new person to the state
+      setNewName(''); // Clear the name input
+      setNewNumber(''); // Clear the number input
+    });
+  };
+
+  // Handle deleting a person from the phonebook
+  const deletePerson = (id) => {
+    const personToDelete = persons.find(person => person.id === id); // Find the person to delete
+    if (window.confirm(`Delete ${personToDelete.name}?`)) { // Confirm the deletion with the user
+      personsService.remove(id).then(() => {
+        setPersons(persons.filter(person => person.id !== id)); // Remove the person from the state
+      });
+    }
+  };
+
+  return (
+    <div>
+      <h2>Phonebook</h2>
+      <form onSubmit={addPerson}> {/* Form to add a new person */}
+        <div>
+          Name: <input value={newName} onChange={(e) => setNewName(e.target.value)} /> {/* Input for new person's name */}
+        </div>
+        <div>
+          Number: <input value={newNumber} onChange={(e) => setNewNumber(e.target.value)} /> {/* Input for new person's number */}
+        </div>
+        <div>
+          <button type="submit">Add</button> {/* Button to submit the form */}
+        </div>
+      </form>
+      <h2>Numbers</h2>
+      <ul>
+        {persons.map(person => 
+          <li key={person.id}>
+            {person.name} {person.number}
+            <button onClick={() => deletePerson(person.id)}>Delete</button> {/* Button to delete the person */}
+          </li>
+        )}
+      </ul>
+    </div>
+  );
+};
+
+export default App;
