@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const App = () => {
@@ -6,45 +6,46 @@ const App = () => {
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
 
-  // Fetch existing persons from the server
+  // Fetch initial data from the backend when component mounts
   useEffect(() => {
     axios
       .get('http://localhost:3001/persons')
       .then(response => {
         setPersons(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
       });
   }, []);
 
-  const handleNameChange = (event) => {
-    setNewName(event.target.value);
-  };
-
-  const handleNumberChange = (event) => {
-    setNewNumber(event.target.value);
-  };
-
+  // Function to handle form submission for adding a new person
   const addPerson = (event) => {
     event.preventDefault();
-    const nameExists = persons.some(person => person.name === newName);
-
-    if (nameExists) {
-      alert(`${newName} is already added to the phonebook.`);
-      return;
-    }
-
-    const personObject = {
+    const newPerson = {
       name: newName,
-      number: newNumber
+      number: newNumber,
     };
 
-    // Save new person to the server
     axios
-      .post('http://localhost:3001/persons', personObject)
+      .post('http://localhost:3001/persons', newPerson)
       .then(response => {
         setPersons(persons.concat(response.data));
         setNewName('');
         setNewNumber('');
+      })
+      .catch(error => {
+        console.error('Error adding person:', error);
       });
+  };
+
+  // Function to handle input change for name field
+  const handleNameChange = (event) => {
+    setNewName(event.target.value);
+  };
+
+  // Function to handle input change for number field
+  const handleNumberChange = (event) => {
+    setNewNumber(event.target.value);
   };
 
   return (
@@ -52,25 +53,25 @@ const App = () => {
       <h2>Phonebook</h2>
       <form onSubmit={addPerson}>
         <div>
-          name: <input value={newName} onChange={handleNameChange} />
+          Name: <input value={newName} onChange={handleNameChange} />
         </div>
         <div>
-          number: <input value={newNumber} onChange={handleNumberChange} />
+          Number: <input value={newNumber} onChange={handleNumberChange} />
         </div>
         <div>
-          <button type="submit">add</button>
+          <button type="submit">Add</button>
         </div>
       </form>
       <h2>Numbers</h2>
       <ul>
-        {persons.map(person => (
-          <li key={person.id}>{person.name}: {person.number}</li>
-        ))}
+        {persons.map(person =>
+          <li key={person.id}>{person.name} {person.number}</li>
+        )}
       </ul>
-      <div>debug: {newName} {newNumber}</div>
     </div>
   );
 };
+
 
 export default App;
 
