@@ -1,36 +1,77 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const App = () => {
-  // State to hold persons data fetched from the server
-  const [persons, setPersons] = useState([]);
+const express = require('express');
+const app = express();
 
-  // Effect hook to fetch data from the server on component mount
+// Enable CORS for all routes
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*'); // Allow requests from any origin
+  // Other CORS headers (methods, headers, etc.) can be configured here
+  next();
+});
+const App = () => {
+  const [persons, setPersons] = useState([]);
+  const [newName, setNewName] = useState('');
+
   useEffect(() => {
-    // Axios GET request to fetch data from json-server
+    console.log('effect');
     axios
-      .get('http://localhost:3001/persons')  // Replace URL with your json-server endpoint
+      .get('http://localhost:3001/persons')
       .then(response => {
-        setPersons(response.data);  // Update state with fetched data
+        console.log('promise fulfilled');
+        setPersons(response.data);
       })
       .catch(error => {
         console.error('Error fetching data:', error);
       });
-  }, []);
+  }, []); // Empty dependency array to run once on component mount
+
+  const handleNameChange = (event) => {
+    setNewName(event.target.value);
+  };
+
+  const addPerson = (event) => {
+    event.preventDefault();
+    const personObject = { name: newName };
+
+    // Update the state optimistically (immediately)
+    setPersons([...persons, personObject]);
+    setNewName('');
+
+    // Send POST request to server to add new person
+    axios
+      .post('http://localhost:3001/persons', personObject)
+      .then(response => {
+        console.log('Person added successfully:', response.data);
+      })
+      .catch(error => {
+        console.error('Error adding person:', error);
+        
+      });
+  };
 
   return (
     <div>
-      <h1>Phonebook</h1>
+      <h2>Phonebook</h2>
+      <form onSubmit={addPerson}>
+        <div>
+          name: <input value={newName} onChange={handleNameChange} />
+        </div>
+        <div>
+          <button type="submit">add</button>
+        </div>
+      </form>
+      <h2>Numbers</h2>
       <ul>
-        {/* Render each person's name and number from the fetched data */}
-        {persons.map(person => (
-          <li key={person.id}>
-            {person.name} {person.number}
-          </li>
+        {persons.map((person, index) => (
+          <li key={index}>{person.name}</li>
         ))}
       </ul>
+      {/* Debugging purposes */}
+      <div>debug: {newName}</div>
     </div>
   );
-}
+};
 
 export default App;
