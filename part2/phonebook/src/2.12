@@ -9,7 +9,7 @@ const App = () => {
   // Fetch initial data from the backend when component mounts
   useEffect(() => {
     axios
-      .get('http://localhost:3001/persons')
+      .get('http://localhost:3002/persons')
       .then(response => {
         setPersons(response.data);
       })
@@ -27,7 +27,7 @@ const App = () => {
     };
 
     axios
-      .post('http://localhost:3001/persons', newPerson)
+      .post('http://localhost:3002/persons', newPerson)
       .then(response => {
         setPersons(persons.concat(response.data));
         setNewName('');
@@ -72,6 +72,6 @@ const App = () => {
   );
 };
 
-
 export default App;
+
 
