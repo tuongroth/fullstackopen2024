@@ -1,18 +1,17 @@
 import React from 'react';
 
-const PersonForm = ({ handleSubmit, newName, handleNameChange, newNumber, handleNumberChange }) => {
+const Person = ({ person, deletePerson }) => {
+  const handleDelete = () => {
+    deletePerson(person.id); // Assuming person.id is the unique identifier
+  };
+
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        Name: <input value={newName} onChange={handleNameChange} />
-      </div>
-      <div>
-        Number: <input value={newNumber} onChange={handleNumberChange} />
-      </div>
-      <button type="submit">Add</button>
-    </form>
+    <div className="person">
+      <p>Name: {person.name}</p>
+      <p>Number: {person.number}</p>
+      <button onClick={handleDelete}>Delete</button>
+    </div>
   );
 };
 
-export default PersonForm;
-
+export default Person;
