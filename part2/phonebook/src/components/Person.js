@@ -2,7 +2,7 @@ import React from 'react';
 
 const Person = ({ person, deletePerson }) => {
   const handleDelete = () => {
-    deletePerson(person.id); // Assuming person.id is the unique identifier
+    deletePerson(person.id); 
   };
 
   return (
