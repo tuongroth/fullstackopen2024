@@ -3,7 +3,9 @@ import Header from './Header';
 import Content from './Content';
 import Total from './Total';
 
-const Course = ({ course }) => {
+const Course = (props) => {
+    const { course} = props
+
   return (
     <div>
       <Header course={course.name} />
