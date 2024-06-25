@@ -1,7 +1,11 @@
 import React from 'react';
 
-const Header = ({ course }) => {
-  return <h1>{course}</h1>;
+const Part = ({ part }) => {
+  return (
+    <p>
+      {part.name} {part.exercises}
+    </p>
+  );
 };
 
-export default Header;
+export default Part;
