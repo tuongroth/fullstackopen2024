@@ -1,7 +1,6 @@
-
 import React from 'react';
 
-const success-notification= {
+const successNotification = {
   color: 'green',
   background: 'lightgrey',
   fontSize: 20,
@@ -11,7 +10,7 @@ const success-notification= {
   marginBottom: 10,
 };
 
-const error-notification = {
+const errorNotification = {
   color: 'red',
   background: 'lightgrey',
   fontSize: 20,
@@ -28,13 +27,13 @@ const Notification = ({ message }) => {
 
   if (message.includes('ERROR')) {
     return (
-      <div style={errorStyle} className="error">
+      <div style={errorNotification} className="error">
         {message}
       </div>
     );
   } else {
     return (
-      <div style={successStyle} className="success">
+      <div style={successNotification} className="success">
         {message}
       </div>
     );
@@ -42,3 +41,4 @@ const Notification = ({ message }) => {
 };
 
 export default Notification;
+
