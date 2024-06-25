@@ -1,11 +1,10 @@
-import React from 'react';
-
-const Part = ({ part }) => {
+const Part = (props) => {
   return (
     <p>
-      {part.name} {part.exercises}
+      {props.part} {props.exercises}
     </p>
   );
 };
 
 export default Part;
+
