@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import CountriesList from './components/CountriesList';
+import Country from './components/Country';
+import Filter from './components/Filter';
+import Button from './components/Button';
+import CountryDetail from './components/CountryDetail';
 
 const App = () => {
   const [countries, setCountries] = useState([]);
   const [search, setSearch] = useState('');
   const [filteredCountries, setFilteredCountries] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState(null);
 
   useEffect(() => {
-    axios.get('https://studies.cs.helsinki.fi/restcountries/api/all')
+    axios.get('https://restcountries.com/v3.1/all')
       .then(response => {
         setCountries(response.data);
       })
@@ -29,50 +35,30 @@ const App = () => {
 
   const handleSearchChange = (event) => {
     setSearch(event.target.value);
+    setSelectedCountry(null); // Reset selected country when search changes
+  };
+
+  const handleShowCountryClick = (country) => {
+    setSelectedCountry(country);
   };
 
   return (
     <div>
       <h2>Country Information</h2>
-      <div>
-        Find countries: <input value={search} onChange={handleSearchChange} />
-      </div>
-      <CountriesList countries={filteredCountries} />
+      <Filter value={search} onChange={handleSearchChange} />
+      
+      {selectedCountry ? (
+        <Country country={selectedCountry} />
+      ) : (
+        <CountriesList countries={filteredCountries} onItemClick={handleShowCountryClick} />
+      )}
+
+      {filteredCountries.length === 1 && !selectedCountry && (
+        <Button onClick={() => setSelectedCountry(filteredCountries[0])} text="Show country" />
+      )}
     </div>
   );
 };
 
-const CountriesList = ({ countries }) => {
-  if (countries.length > 10) {
-    return <p>Too many matches, specify another filter</p>;
-  } else if (countries.length > 1) {
-    return (
-      <ul>
-        {countries.map(country => (
-          <li key={country.cca3}>{country.name.common}</li>
-        ))}
-      </ul>
-    );
-  } else if (countries.length === 1) {
-    return <CountryDetail country={countries[0]} />;
-  } else {
-    return <p>No matches found</p>;
-  }
-};
-
-const CountryDetail = ({ country }) => (
-  <div>
-    <h2>{country.name.common}</h2>
-    <p>Capital: {country.capital}</p>
-    <p>Area: {country.area}</p>
-    <h3>Languages:</h3>
-    <ul>
-      {Object.values(country.languages).map(language => (
-        <li key={language}>{language}</li>
-      ))}
-    </ul>
-    <img src={country.flags.svg} alt={`Flag of ${country.name.common}`} width="200" />
-  </div>
-);
-
 export default App;
+
