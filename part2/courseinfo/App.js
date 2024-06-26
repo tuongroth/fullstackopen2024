@@ -42,7 +42,7 @@ const Total = ({ parts }) => {
   );
 };
 
-// Header component
+
 const Header = ({ name }) => {
   return <h1>{name}</h1>;
 };
