@@ -1,0 +1,81 @@
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+        "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+        "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+
+code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+        monospace;
+}
+
+.message {
+    color: green;
+    background: lightgrey;
+    font-size: 20px;
+    border: 1px solid green;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.error {
+    color: red;
+    background: lightgrey;
+    font-size: 20px;
+    border: 1px solid red;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+
+form {
+    margin-bottom: 20px;
+}
+
+input[type="text"] {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.person {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.person p {
+    margin: 0;
+}
+
+.person button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.person button:hover {
+    background-color: #c82333;
+}
+
+.filter {
+    margin-bottom: 20px;
+}
+
+.filter input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
