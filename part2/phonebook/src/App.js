@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import personsService from './services/persons'; // Import your personsService for API calls
-import './styles.css'; // Import your CSS file for styling
-import Notification from './Notification'; // Assuming you have a Notification component
+import personsService from './services/persons'; 
+import './styles.css'; 
+import Notification from './Notification'; 
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -9,7 +9,7 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('');
   const [notification, setNotification] = useState(null);
 
-  // Fetch initial data from the backend when the component mounts
+  
   useEffect(() => {
     personsService
       .getAll()
@@ -21,14 +21,14 @@ const App = () => {
       });
   }, []);
 
-  // Function to handle form submission for adding or updating a person
+  
   const addOrUpdatePerson = (event) => {
     event.preventDefault();
 
-    // Check if the person already exists in the phonebook
+    
     const existingPerson = persons.find(person => person.name === newName);
 
-    // If person already exists, confirm update
+   
     if (existingPerson) {
       if (window.confirm(`${newName} is already added to the phonebook. Replace the old number with a new one?`)) {
         const changedPerson = { ...existingPerson, number: newNumber };
@@ -55,7 +55,7 @@ const App = () => {
           });
       }
     } else {
-      // If person does not exist, create a new person
+     
       const newPerson = {
         name: newName,
         number: newNumber,
@@ -82,7 +82,7 @@ const App = () => {
     }
   };
 
-  // Function to handle deletion of a person
+  
   const deletePerson = (id, name) => {
     if (window.confirm(`Delete ${name}?`)) {
       personsService
@@ -104,12 +104,12 @@ const App = () => {
     }
   };
 
-  // Function to handle input change for name field
+  
   const handleNameChange = (event) => {
     setNewName(event.target.value);
   };
 
-  // Function to handle input change for number field
+  
   const handleNumberChange = (event) => {
     setNewNumber(event.target.value);
   };
