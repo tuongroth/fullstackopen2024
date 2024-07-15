@@ -3,7 +3,6 @@
 This repository contains the backend for a phonebook application built with Node.js, Express, and MongoDB.
 
 ## Deployed Backend
-
 - **URL**: [Link to your deployed backend on Fly.io](https://fly.io/apps/part2-notes-frontend-part2-4-morning-wind-6734)
 - **Description**: This backend serves as the API for managing phonebook entries. It handles CRUD operations and serves data to the frontend application.
 
