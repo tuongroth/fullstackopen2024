@@ -73,6 +73,7 @@ app.delete('/api/persons/:id', (req, res) => {
   res.status(204).end();
 });
 
+// Port configuration
 portfinder.basePort = 3001;
 portfinder.getPortPromise().then(PORT => {
   app.listen(PORT, () => {
