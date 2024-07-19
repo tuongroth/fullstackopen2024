@@ -1,76 +1,104 @@
-const express = require('express')
-const app = express()
-require('dotenv').config()
+const express = require('express');
+const morgan = require('morgan');
+const portfinder = require('portfinder');
+const mongoose = require('mongoose');
+const app = express();
 
-const Note = require('./models/note')
+const url = `mongodb+srv://fullstack:${password}@cluster0.xgr0xci.mongodb.net/phonebook?retryWrites=true&w=majority`;
 
-let notes = [
-]
-
-app.use(express.static('dist'))
-
-const requestLogger = (request, response, next) => {
-  console.log('Method:', request.method)
-  console.log('Path:  ', request.path)
-  console.log('Body:  ', request.body)
-  console.log('---')
-  next()
-}
-
-const cors = require('cors')
-
-app.use(cors())
-
-app.use(express.json())
-app.use(requestLogger)
-
-const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: 'unknown endpoint' })
-}
-
-app.get('/', (request, response) => {
-  response.send('<h1>Hello World!</h1>')
-})
-
-app.get('/api/notes', (request, response) => {
-  Note.find({}).then(notes => {
-    response.json(notes)
+mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    console.log('Connected to MongoDB');
   })
-})
+  .catch((error) => {
+    console.error('Error connecting to MongoDB:', error.message);
+  });
 
-app.post('/api/notes', (request, response) => {
-  const body = request.body
+const personSchema = new mongoose.Schema({
+  name: String,
+  number: String,
+});
 
-  if (body.content === undefined) {
-    return response.status(400).json({ error: 'content missing' })
+const Person = mongoose.model('Person', personSchema);
+
+app.use(express.json());
+app.use(morgan('tiny'));
+app.use(express.static('dist'));  // Serve Vite build
+
+app.get('/api/persons', (req, res) => {
+  Person.find({})
+    .then(persons => {
+      res.json(persons);
+    })
+    .catch(error => {
+      res.status(500).json({ error: 'Something went wrong' });
+    });
+});
+
+app.get('/api/persons/:id', (req, res) => {
+  Person.findById(req.params.id)
+    .then(person => {
+      if (person) {
+        res.json(person);
+      } else {
+        res.status(404).end();
+      }
+    })
+    .catch(error => {
+      res.status(400).json({ error: 'malformatted id' });
+    });
+});
+
+app.get('/info', (req, res) => {
+  Person.countDocuments({})
+    .then(count => {
+      const requestTime = new Date();
+      res.send(`
+        <p>Phonebook has info for ${count} people</p>
+        <p>${requestTime}</p>
+      `);
+    })
+    .catch(error => {
+      res.status(500).json({ error: 'Something went wrong' });
+    });
+});
+
+app.post('/api/persons', (req, res) => {
+  const { name, number } = req.body;
+  if (!name || !number) {
+    return res.status(400).json({ error: 'name or number is missing' });
   }
 
-  const note = new Note({
-    content: body.content,
-    important: body.important || false,
-  })
+  const person = new Person({
+    name,
+    number,
+  });
 
-  note.save().then(savedNote => {
-    response.json(savedNote)
-  })
-})
+  person.save()
+    .then(savedPerson => {
+      res.status(201).json(savedPerson);
+    })
+    .catch(error => {
+      res.status(500).json({ error: 'Something went wrong' });
+    });
+});
 
-app.get('/api/notes/:id', (request, response) => {
-  Note.findById(request.params.id).then(note => {
-    response.json(note)
-  })
-})
+app.delete('/api/persons/:id', (req, res) => {
+  Person.findByIdAndRemove(req.params.id)
+    .then(() => {
+      res.status(204).end();
+    })
+    .catch(error => {
+      res.status(400).json({ error: 'malformatted id' });
+    });
+});
 
-app.delete('/api/notes/:id', (request, response) => {
-  const id = Number(request.params.id)
-  notes = notes.filter(note => note.id !== id)
-
-  response.status(204).end()
-})
-
-app.use(unknownEndpoint)
-
-const PORT = process.env.PORT
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+// Port configuration
+portfinder.basePort = 3002;
+portfinder.getPortPromise().then(PORT => {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}).catch(err => {
+  console.error(err);
+});
