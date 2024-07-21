@@ -1,39 +1,46 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
-if (process.argv.length < 3) {
-  console.log('give password as argument')
-  process.exit(1)
-}
+mongoose.set('strictQuery', false);
 
-const password = process.argv[2]
+const url = process.env.MONGODB_URI;
 
-const url =
-  `mongodb+srv://fullstack:${password}@cluster0.o1opl.mongodb.net/noteApp?retryWrites=true&w=majority`
-
-mongoose.set('strictQuery', false)
-mongoose.connect(url).then(() => {
-  const noteSchema = new mongoose.Schema({
-    content: String,
-    important: Boolean,
+console.log('connecting to', url);
+mongoose.connect(url)
+  .then(() => {
+    console.log('connected to MongoDB');
   })
-  
-  const Note = mongoose.model('Note', noteSchema)
-  
-  const note = new Note({
-    content: 'HTML is x',
-    important: true,
-  })
-  
-  /*
-  note.save().then(result => {
-    console.log('note saved!')
-    mongoose.connection.close()
-  })
-  */
-  Note.find({}).then(result => {
-    result.forEach(note => {
-      console.log(note)
-    })
+  .catch((error) => {
+    console.log('error connecting to MongoDB:', error.message);
+  });
+
+const personSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    minlength: 3,
+    required: true
+  },
+  number: {
+    type: String,
+    required: true,
+    validate: {
+      validator: function(v) {
+        return /\d{2,3}-\d{6,}/.test(v);
+      },
+      message: props => `${props.value} is not a valid phone number!`
+    }
+  }
+});
+
+personSchema.set('toJSON', {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString();
+    delete returnedObject._id;
+    delete returnedObject.__v;
+  }
+});
+
+module.exports = mongoose.model('Person', personSchema);
+
     mongoose.connection.close()
   })
 })
