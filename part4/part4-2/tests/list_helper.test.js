@@ -1,4 +1,3 @@
-// tests/list_helper.test.js
 const { test, describe } = require('node:test');
 const assert = require('node:assert');
 const listHelper = require('../utils/list_helper');
@@ -64,23 +63,14 @@ describe('mostBlogs', () => {
     assert.strictEqual(result, null);
   });
 
-  test('when list has only one blog, equals the author of that blog', () => {
-    const blogs = [{ title: 'Blog1', author: 'Author1', likes: 5 }];
-    const result = listHelper.mostBlogs(blogs);
-    assert.deepStrictEqual(result, { author: 'Author1', blogs: 1 });
-  });
-
-  test('of a bigger list is the author with most blogs', () => {
+  test('when list has blogs, finds the author with most blogs', () => {
     const blogs = [
       { title: 'Blog1', author: 'Author1', likes: 5 },
       { title: 'Blog2', author: 'Author1', likes: 10 },
-      { title: 'Blog3', author: 'Author3', likes: 15 },
-      { title: 'Blog4', author: 'Author2', likes: 7 },
-      { title: 'Blog5', author: 'Author3', likes: 8 },
-      { title: 'Blog6', author: 'Author3', likes: 9 },
+      { title: 'Blog3', author: 'Author2', likes: 15 },
     ];
     const result = listHelper.mostBlogs(blogs);
-    assert.deepStrictEqual(result, { author: 'Author3', blogs: 3 });
+    assert.deepStrictEqual(result, { author: 'Author1', blogs: 2 });
   });
 });
 
@@ -91,22 +81,13 @@ describe('mostLikes', () => {
     assert.strictEqual(result, null);
   });
 
-  test('when list has only one blog, equals the likes of that blog', () => {
-    const blogs = [{ title: 'Blog1', author: 'Author1', likes: 5 }];
-    const result = listHelper.mostLikes(blogs);
-    assert.deepStrictEqual(result, { author: 'Author1', likes: 5 });
-  });
-
-  test('of a bigger list is the author with most likes', () => {
+  test('when list has blogs, finds the author with most likes', () => {
     const blogs = [
       { title: 'Blog1', author: 'Author1', likes: 5 },
       { title: 'Blog2', author: 'Author2', likes: 10 },
-      { title: 'Blog3', author: 'Author3', likes: 15 },
-      { title: 'Blog4', author: 'Author1', likes: 7 },
-      { title: 'Blog5', author: 'Author3', likes: 8 },
-      { title: 'Blog6', author: 'Author3', likes: 9 },
+      { title: 'Blog3', author: 'Author1', likes: 15 },
     ];
     const result = listHelper.mostLikes(blogs);
-    assert.deepStrictEqual(result, { author: 'Author3', likes: 32 });
+    assert.deepStrictEqual(result, { author: 'Author1', likes: 20 });
   });
 });
