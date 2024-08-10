@@ -1,3 +1,4 @@
+///Exercise 4.15 & 4.17: Create User Model//
 const mongoose = require('mongoose')
 
 const userSchema = mongoose.Schema({
