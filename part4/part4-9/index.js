@@ -1,34 +1,33 @@
-const app = require('./app') // The Express app
 const config = require('./utils/config')
+const express = require('express')
+const app = express()
+require('express-async-errors')
+const cors = require('cors')
+const blogRouter = require('./controllers/blogs') // Renamed from notesRouter to blogRouter
+const middleware = require('./utils/middleware')
 const logger = require('./utils/logger')
+const mongoose = require('mongoose')
 
+mongoose.set('strictQuery', false)
 
-app.listen(config.PORT, () => {
-  logger.info(`Server running on port ${config.PORT}`)
-})
+logger.info('connecting to', config.MONGODB_URI)
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = "mongodb+srv://fullstack:2r6FcH9cLQRdnXHJ@cluster0.xgr0xci.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+mongoose.connect(config.MONGODB_URI)
+  .then(() => {
+    logger.info('connected to MongoDB')
+  })
+  .catch((error) => {
+    logger.error('error connection to MongoDB:', error.message)
+  })
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
-});
+app.use(cors())
+app.use(express.static('dist'))
+app.use(express.json())
+app.use(middleware.requestLogger)
 
-async function run() {
-  try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
-  }
-}
-run().catch(console.dir);
+app.use('/api/blogs', blogRouter) // Updated endpoint from /api/notes to /api/blogs
+
+app.use(middleware.unknownEndpoint)
+app.use(middleware.errorHandler)
+
+module.exports = app
