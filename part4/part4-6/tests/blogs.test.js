@@ -1,79 +1,176 @@
-// blogs.test.js
-
 const supertest = require('supertest');
-const mongoose = require('mongoose');
-const app = require('../app'); // Adjust the path to your application entry point
-const { connectToDatabase, closeDatabaseConnection } = require('./testSetup');
-const Blog = require('../blog'); // Adjust the path to your Blog model
-const helper = require('./test_helper'); // A helper file for test data setup
-
+const app = require('../app');
+const Blog = require('../models/blog');
+const { connectToDatabase, closeDatabaseConnection } = require('./setup');
 const api = supertest(app);
 
-// Run this before all tests to set up the database
+const initialBlogs = [
+  { title: 'First blog', author: 'Author One', url: 'http://example.com/1', likes: 5 },
+  { title: 'Second blog', author: 'Author Two', url: 'http://example.com/2', likes: 10 },
+];
+
 beforeAll(async () => {
   await connectToDatabase();
-  await helper.initializeTestData(); // Initialize test data
 }, 30000);
 
-// Run this before each test to ensure a clean state
 beforeEach(async () => {
   await Blog.deleteMany({});
-  await Blog.insertMany(helper.initialBlogs); // Insert initial blog posts
+  await Blog.insertMany(initialBlogs);
 }, 10000);
 
-// Run this after all tests to close the database connection
 afterAll(async () => {
   await closeDatabaseConnection();
 });
 
-// Test: Deleting a blog post
-test('deletes a blog post successfully', async () => {
-  const blogsAtStart = await api.get('/api/blogs');
-  console.log('Blogs at start:', blogsAtStart.body); // Log initial blogs
+describe('when there are initially some blogs saved', () => {
 
-  const blogToDelete = blogsAtStart.body[0];
-  console.log('Blog to delete:', blogToDelete); // Log the blog to be deleted
+  test('blogs are returned as JSON', async () => {
+    await api
+      .get('/api/blogs')
+      .expect(200)
+      .expect('Content-Type', /application\/json/);
+  });
 
-  await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
+  test('all blogs are returned', async () => {
+    const response = await api.get('/api/blogs');
+    expect(response.body.length).toBe(initialBlogs.length);
+  });
 
-  const blogsAtEnd = await api.get('/api/blogs');
-  console.log('Blogs at end:', blogsAtEnd.body); // Log blogs after deletion
+  test('a specific blog is within the returned blogs', async () => {
+    const response = await api.get('/api/blogs');
+    const titles = response.body.map(r => r.title);
+    expect(titles).toContain('First blog');
+  });
 
-  expect(blogsAtEnd.body.length).toBe(blogsAtStart.body.length - 1);
+  describe('viewing a specific blog', () => {
 
-  const contents = blogsAtEnd.body.map(b => b.title);
-  console.log('Titles after deletion:', contents); // Log blog titles after deletion
+    test('succeeds with a valid id', async () => {
+      const blogsAtStart = await api.get('/api/blogs');
+      const blogToView = blogsAtStart.body[0];
+      const resultBlog = await api
+        .get(`/api/blogs/${blogToView.id}`)
+        .expect(200)
+        .expect('Content-Type', /application\/json/);
+      expect(resultBlog.body).toEqual(blogToView);
+    });
 
-  expect(contents).not.toContain(blogToDelete.title);
-}, 10000);
+    test('fails with status code 404 if blog does not exist', async () => {
+      const validNonexistingId = '604c4e9d6b7e3d3f7e0c8f6a'; // Replace with a valid non-existing ID
+      await api
+        .get(`/api/blogs/${validNonexistingId}`)
+        .expect(404);
+    });
 
-// Test: Updating a blog post
-test('updates a blog post successfully', async () => {
-  const blogsAtStart = await api.get('/api/blogs');
-  console.log('Blogs at start:', blogsAtStart.body); // Log initial blogs
+    test('fails with status code 400 if id is invalid', async () => {
+      const invalidId = 'invalid-id';
+      await api
+        .get(`/api/blogs/${invalidId}`)
+        .expect(400);
+    });
+  });
 
-  const blogToUpdate = blogsAtStart.body[0];
-  console.log('Blog to update:', blogToUpdate); // Log the blog to be updated
+  describe('addition of a new blog', () => {
 
-  const updatedData = { ...blogToUpdate, title: 'Updated title', content: 'Updated content' };
+    test('succeeds with valid data', async () => {
+      const newBlog = {
+        title: 'New Blog',
+        author: 'Author Three',
+        url: 'http://example.com/3',
+        likes: 3,
+      };
 
-  const response = await api
-    .put(`/api/blogs/${blogToUpdate.id}`)
-    .send(updatedData)
-    .expect(200)
-    .expect('Content-Type', /application\/json/);
+      await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(201)
+        .expect('Content-Type', /application\/json/);
 
-  console.log('Response after update:', response.body); // Log response after update
+      const blogsAtEnd = await api.get('/api/blogs');
+      expect(blogsAtEnd.body.length).toBe(initialBlogs.length + 1);
 
-  expect(response.body.title).toBe(updatedData.title);
-  expect(response.body.content).toBe(updatedData.content);
+      const titles = blogsAtEnd.body.map(b => b.title);
+      expect(titles).toContain('New Blog');
+    });
 
-  const blogsAtEnd = await api.get('/api/blogs');
-  console.log('Blogs at end:', blogsAtEnd.body); // Log blogs after update
+    test('fails with status code 400 if title is missing', async () => {
+      const newBlog = {
+        author: 'Author Four',
+        url: 'http://example.com/4',
+      };
 
-  const updatedBlog = blogsAtEnd.body.find(b => b.id === blogToUpdate.id);
-  console.log('Updated blog:', updatedBlog); // Log the updated blog
+      await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(400);
+    });
 
-  expect(updatedBlog.title).toBe(updatedData.title);
-  expect(updatedBlog.content).toBe(updatedData.content);
-}, 10000);
+    test('fails with status code 400 if url is missing', async () => {
+      const newBlog = {
+        title: 'Missing URL Blog',
+        author: 'Author Five',
+      };
+
+      await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(400);
+    });
+
+    test('likes defaults to 0 if missing', async () => {
+      const newBlog = {
+        title: 'Default Likes Blog',
+        author: 'Author Six',
+        url: 'http://example.com/6',
+      };
+
+      await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(201)
+        .expect('Content-Type', /application\/json/);
+
+      const blogsAtEnd = await api.get('/api/blogs');
+      const createdBlog = blogsAtEnd.body.find(b => b.title === 'Default Likes Blog');
+      expect(createdBlog.likes).toBe(0);
+    });
+  });
+
+  describe('deletion of a blog', () => {
+
+    test('succeeds with status code 204 if id is valid', async () => {
+      const blogsAtStart = await api.get('/api/blogs');
+      const blogToDelete = blogsAtStart.body[0];
+
+      await api
+        .delete(`/api/blogs/${blogToDelete.id}`)
+        .expect(204);
+
+      const blogsAtEnd = await api.get('/api/blogs');
+      expect(blogsAtEnd.body.length).toBe(initialBlogs.length - 1);
+
+      const titles = blogsAtEnd.body.map(r => r.title);
+      expect(titles).not.toContain(blogToDelete.title);
+    });
+  });
+
+  describe('updating a blog', () => {
+
+    test('succeeds with valid data', async () => {
+      const blogsAtStart = await api.get('/api/blogs');
+      const blogToUpdate = blogsAtStart.body[0];
+      const updatedData = { ...blogToUpdate, likes: blogToUpdate.likes + 1 };
+
+      const response = await api
+        .put(`/api/blogs/${blogToUpdate.id}`)
+        .send(updatedData)
+        .expect(200)
+        .expect('Content-Type', /application\/json/);
+
+      expect(response.body.likes).toBe(updatedData.likes);
+
+      const blogsAtEnd = await api.get('/api/blogs');
+      const updatedBlog = blogsAtEnd.body.find(b => b.id === blogToUpdate.id);
+      expect(updatedBlog.likes).toBe(updatedData.likes);
+    });
+  });
+});
