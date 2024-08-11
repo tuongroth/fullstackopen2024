@@ -1,42 +1,58 @@
 const mongoose = require('mongoose');
-const Note = mongoose.models.Note || mongoose.model('Note', new mongoose.Schema({
-  content: {
+
+// Define the schema for a blog post
+const blogSchema = new mongoose.Schema({
+  title: {
     type: String,
     required: true,
     minlength: 5
   },
-  important: Boolean,
+  content: {
+    type: String,
+    required: true,
+    minlength: 10
+  },
+  published: {
+    type: Boolean,
+    default: false
+  }
 }).set('toJSON', {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString();
     delete returnedObject._id;
     delete returnedObject.__v;
   }
-}));
+});
 
-// Export helper functions or other utilities
-const initialNotes = [
-  { content: 'Browser can execute only JavaScript', important: true },
-  { content: 'HTTP is an application protocol', important: false },
+// Create the Blog model, or use the existing one if it exists
+const Blog = mongoose.models.Blog || mongoose.model('Blog', blogSchema);
+
+// Initial data for testing
+const initialBlogs = [
+  { title: 'Introduction to JavaScript', content: 'JavaScript is a versatile programming language.', published: true },
+  { title: 'Understanding HTTP', content: 'HTTP is the foundation of data communication on the web.', published: false },
 ];
 
-const notesInDb = async () => {
-  const notes = await Note.find({});
-  return notes.map(note => note.toJSON());
+// Function to get all blogs from the database
+const blogsInDb = async () => {
+  const blogs = await Blog.find({});
+  return blogs.map(blog => blog.toJSON());
 };
 
+// Function to get a non-existing ID
 const nonExistingId = async () => {
-  const note = new Note({
-    content: 'willremovethissoon',
-    important: true,
+  const blog = new Blog({
+    title: 'Temporary Blog Post',
+    content: 'This blog post will be removed soon.',
+    published: false,
   });
-  await note.save();
-  await note.remove();
-  return note._id.toString();
+  await blog.save();
+  await blog.remove();
+  return blog._id.toString();
 };
 
 module.exports = {
-  initialNotes,
-  notesInDb,
+  initialBlogs,
+  blogsInDb,
   nonExistingId
 };
