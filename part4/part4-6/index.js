@@ -4,18 +4,18 @@ const logger = require('./utils/logger');
 const config = require('./utils/config'); // Make sure to define your configuration file
 
 // Import routes
-const notesRouter = require('./controllers/notes'); // Adjust the path if necessary
+const blogsRouter = require('./controllers/blogs'); // Update path to the blogs controller
 
 const app = express();
 
 // Middleware
-app.use(express.json()); // To parse JSON bodies
+app.use(express.json()); // For parsing JSON bodies
 
 // Logging middleware
-app.use(logger);
+app.use(logger.requestLogger); // Ensure logger.requestLogger is correctly defined
 
 // Routes
-app.use('/api/notes', notesRouter); // Adjust the path if necessary
+app.use('/api/blogs', blogsRouter); // Update path to the blogs routes
 
 // Health check route
 app.get('/health', (req, res) => {
@@ -56,3 +56,4 @@ mongoose.connect(config.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology
   });
 
 module.exports = app;
+
