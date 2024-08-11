@@ -1,9 +1,0 @@
-;# Example POST request to /api/login
-
-POST http://localhost:3001/api/login
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRuZ1JvdGgiLCJpYXQiOjE1MTYyMzkwMjJ9.2eL-hKzJZfT-bruxJJVf-ONR3z5n2XsLPnz6IU3PBpk
-Content-Type: application/json
-
-{
-  "key": "value"
-}
