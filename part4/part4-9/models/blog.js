@@ -1,35 +1,26 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const blogSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
-    minlength: 5
-  },
   content: {
     type: String,
     required: true,
-    minlength: 20
+    minlength: 5 // Adjust the minlength or other validation rules as needed
   },
-  author: {
+  important: Boolean, // You may want to adjust this field or add more fields specific to blogs
+  user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  tags: [String],
-  date: {
-    type: Date,
-    default: Date.now
-  },
-  important: Boolean
-});
+    ref: 'User' // Ensure this refers to the User model
+  }
+})
 
+// Define how the schema should be converted to JSON
 blogSchema.set('toJSON', {
   transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString();
-    delete returnedObject._id;
-    delete returnedObject.__v;
+    returnedObject.id = returnedObject._id.toString()
+    delete returnedObject._id
+    delete returnedObject.__v
   }
-});
+})
 
-module.exports = mongoose.model('Blog', blogSchema);
+module.exports = mongoose.model('Blog', blogSchema)
+
