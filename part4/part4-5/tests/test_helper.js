@@ -1,29 +1,40 @@
-const Note = require('../models/note')
+const Blog = require('../models/blog'); // Update to import Blog model
 
-const initialNotes = [
+const initialBlogs = [
   {
-    content: 'HTML is easy',
-    important: false
+    title: 'HTML is easy',
+    content: 'HTML is straightforward to learn and use for structuring web pages.',
+    author: 'John Doe',
+    likes: 5
   },
   {
-    content: 'Browser can execute only JavaScript',
-    important: true
+    title: 'Browser can execute only JavaScript',
+    content: 'Modern web browsers can only execute JavaScript code directly, not HTML or CSS.',
+    author: 'Jane Smith',
+    likes: 10
   }
-]
+];
 
 const nonExistingId = async () => {
-  const note = new Note({ content: 'willremovethissoon' })
-  await note.save()
-  await note.deleteOne()
+  const blog = new Blog({ 
+    title: 'Temporary Blog',
+    content: 'This blog will be removed soon.',
+    author: 'Temp Author',
+    likes: 0 
+  });
+  await blog.save();
+  await blog.deleteOne();
 
-  return note._id.toString()
-}
+  return blog._id.toString();
+};
 
-const notesInDb = async () => {
-  const notes = await Note.find({})
-  return notes.map(note => note.toJSON())
-}
+const blogsInDb = async () => {
+  const blogs = await Blog.find({});
+  return blogs.map(blog => blog.toJSON());
+};
 
 module.exports = {
-  initialNotes, nonExistingId, notesInDb
-}
+  initialBlogs, 
+  nonExistingId, 
+  blogsInDb
+};
