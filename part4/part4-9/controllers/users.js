@@ -1,18 +1,10 @@
-*Exercise 4.15, 4.16, 4.17: User Controller to handle user creation and listing
-const bcrypt = require('bcryptjs')
+const bcrypt = require('bcrypt')
 const usersRouter = require('express').Router()
 const User = require('../models/user')
 
-// Exercise 4.15: Create new user
+// Create a new user
 usersRouter.post('/', async (request, response) => {
   const { username, name, password } = request.body
-
-  // Exercise 4.16: Validate username and password
-  if (!password || password.length < 3) {
-    return response.status(400).json({
-      error: 'password must be at least 3 characters long'
-    })
-  }
 
   const saltRounds = 10
   const passwordHash = await bcrypt.hash(password, saltRounds)
@@ -24,12 +16,14 @@ usersRouter.post('/', async (request, response) => {
   })
 
   const savedUser = await user.save()
+
   response.status(201).json(savedUser)
 })
 
-// Exercise 4.15: Get all users
+// Get all users with their blogs
 usersRouter.get('/', async (request, response) => {
-  const users = await User.find({}).populate('blogs', { title: 1, author: 1, url: 1 })
+  const users = await User
+    .find({}).populate('blogs', { content: 1, important: 1 }) // Updated from 'notes' to 'blogs'
   response.json(users)
 })
 
