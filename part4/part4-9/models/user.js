@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
   blogs: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Blog'  // 
+      ref: 'Blog'  // Updated reference from 'Note' to 'Blog'
     }
   ],
 });
@@ -29,3 +29,4 @@ userSchema.set('toJSON', {
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
+
