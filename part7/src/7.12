@@ -1,0 +1,166 @@
+import React, { useState, useEffect } from 'react';
+import { Provider, useDispatch, useSelector } from 'react-redux';
+import { configureStore, createSlice } from '@reduxjs/toolkit';
+import axios from 'axios';
+
+// Redux slice for blogs
+const blogSlice = createSlice({
+  name: 'blogs',
+  initialState: [],
+  reducers: {
+    setBlogs: (state, action) => action.payload,
+    addBlog: (state, action) => {
+      state.push(action.payload);
+    },
+    likeBlog: (state, action) => {
+      const blog = state.find((b) => b.id === action.payload);
+      if (blog) {
+        blog.likes += 1;
+      }
+    },
+    deleteBlog: (state, action) => {
+      return state.filter((b) => b.id !== action.payload);
+    }
+  }
+});
+
+const { setBlogs, addBlog, likeBlog, deleteBlog } = blogSlice.actions;
+
+// Redux slice for notifications
+const notificationSlice = createSlice({
+  name: 'notification',
+  initialState: '',
+  reducers: {
+    setNotification: (state, action) => action.payload,
+    clearNotification: () => ''
+  }
+});
+
+const { setNotification, clearNotification } = notificationSlice.actions;
+
+// Redux store
+const store = configureStore({
+  reducer: {
+    blogs: blogSlice.reducer,
+    notification: notificationSlice.reducer
+  }
+});
+
+// Fetch blogs from the server
+const fetchBlogs = async (dispatch) => {
+  try {
+    const response = await axios.get('http://localhost:3001/blogs');
+    dispatch(setBlogs(response.data));
+  } catch (error) {
+    dispatch(setNotification('Error fetching blogs'));
+    setTimeout(() => dispatch(clearNotification()), 3000);
+  }
+};
+
+// Add a new blog
+const postNewBlog = async (blog, dispatch) => {
+  try {
+    const response = await axios.post('http://localhost:3001/blogs', blog);
+    dispatch(addBlog(response.data));
+    dispatch(setNotification('New blog added!'));
+    setTimeout(() => dispatch(clearNotification()), 3000);
+  } catch (error) {
+    dispatch(setNotification('Error adding blog'));
+    setTimeout(() => dispatch(clearNotification()), 3000);
+  }
+};
+
+// Blog list component
+const BlogList = () => {
+  const dispatch = useDispatch();
+  const blogs = useSelector((state) => state.blogs);
+  
+  const handleLike = (id) => {
+    dispatch(likeBlog(id));
+    dispatch(setNotification('Blog liked!'));
+    setTimeout(() => dispatch(clearNotification()), 3000);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`http://localhost:3001/blogs/${id}`);
+      dispatch(deleteBlog(id));
+      dispatch(setNotification('Blog deleted!'));
+      setTimeout(() => dispatch(clearNotification()), 3000);
+    } catch (error) {
+      dispatch(setNotification('Error deleting blog'));
+      setTimeout(() => dispatch(clearNotification()), 3000);
+    }
+  };
+
+  useEffect(() => {
+    fetchBlogs(dispatch);
+  }, [dispatch]);
+
+  return (
+    <div>
+      <h2>Blogs</h2>
+      {blogs.map((blog) => (
+        <div key={blog.id}>
+          <h3>{blog.title}</h3>
+          <p>{blog.content}</p>
+          <p>Likes: {blog.likes}</p>
+          <button onClick={() => handleLike(blog.id)}>Like</button>
+          <button onClick={() => handleDelete(blog.id)}>Delete</button>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// Blog form component to add new blogs
+const BlogForm = () => {
+  const dispatch = useDispatch();
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newBlog = { title, content, likes: 0 };
+    postNewBlog(newBlog, dispatch);
+    setTitle('');
+    setContent('');
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div>
+        Title: <input value={title} onChange={(e) => setTitle(e.target.value)} />
+      </div>
+      <div>
+        Content: <input value={content} onChange={(e) => setContent(e.target.value)} />
+      </div>
+      <button type="submit">Create</button>
+    </form>
+  );
+};
+
+// Main App component
+const App = () => {
+  const notification = useSelector((state) => state.notification);
+
+  return (
+    <div>
+      {notification && <p>{notification}</p>}
+      <h1>Blog App</h1>
+      <BlogForm />
+      <BlogList />
+    </div>
+  );
+};
+
+// Root component with Redux provider
+const Root = () => {
+  return (
+    <Provider store={store}>
+      <App />
+    </Provider>
+  );
+};
+
+export default Root;
