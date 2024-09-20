@@ -1,0 +1,126 @@
+import React, { useState } from 'react';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link,
+  useNavigate
+} from 'react-router-dom';
+
+const App = () => {
+  const [anecdotes, setAnecdotes] = useState([
+    {
+      content: 'If it hurts, do it more often',
+      author: 'Jez Humble',
+      info: 'https://martinfowler.com/bliki/FrequencyReducesDifficulty.html',
+      votes: 0,
+      id: 1
+    },
+    {
+      content: 'Premature optimization is the root of all evil',
+      author: 'Donald Knuth',
+      info: 'http://wiki.c2.com/?PrematureOptimization',
+      votes: 0,
+      id: 2
+    }
+  ]);
+
+  return (
+    <Router>
+      <div>
+        <Menu />
+        <Routes>
+          <Route path="/" element={<AnecdoteList anecdotes={anecdotes} />} />
+          <Route path="/create" element={<AnecdoteForm setAnecdotes={setAnecdotes} anecdotes={anecdotes} />} />
+        </Routes>
+        <Footer />
+      </div>
+    </Router>
+  );
+};
+
+// Menu component to navigate between routes
+const Menu = () => (
+  <div style={{ paddingBottom: '10px' }}>
+    <Link to="/">Anecdotes</Link>
+    <Link to="/create" style={{ marginLeft: 10 }}>Create New</Link>
+  </div>
+);
+
+// AnecdoteList component to display the list of anecdotes
+const AnecdoteList = ({ anecdotes }) => (
+  <div>
+    <h2>Anecdotes</h2>
+    <ul>
+      {anecdotes.map(anecdote => (
+        <li key={anecdote.id}>
+          {anecdote.content} by {anecdote.author}
+        </li>
+      ))}
+    </ul>
+  </div>
+);
+
+// AnecdoteForm component to handle creation of new anecdotes
+const AnecdoteForm = ({ setAnecdotes, anecdotes }) => {
+  const [content, setContent] = useState('');
+  const [author, setAuthor] = useState('');
+  const [info, setInfo] = useState('');
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newAnecdote = {
+      content,
+      author,
+      info,
+      votes: 0,
+      id: Math.floor(Math.random() * 10000)
+    };
+    setAnecdotes(anecdotes.concat(newAnecdote));
+    navigate('/');  // Navigate back to the anecdote list after submission
+  };
+
+  return (
+    <div>
+      <h2>Create a new anecdote</h2>
+      <form onSubmit={handleSubmit}>
+        <div>
+          Content
+          <input
+            type="text"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+          />
+        </div>
+        <div>
+          Author
+          <input
+            type="text"
+            value={author}
+            onChange={(e) => setAuthor(e.target.value)}
+          />
+        </div>
+        <div>
+          URL for more info
+          <input
+            type="text"
+            value={info}
+            onChange={(e) => setInfo(e.target.value)}
+          />
+        </div>
+        <button type="submit">Create</button>
+      </form>
+    </div>
+  );
+};
+
+// Footer component to be displayed at the bottom of every page
+const Footer = () => (
+  <div style={{ marginTop: '20px', borderTop: '1px solid #ccc', paddingTop: '10px' }}>
+    Anecdote app for <a href='https://fullstackopen.com/'>Full Stack Open</a>.
+    See the <a href='https://github.com/fullstack-hy2020/routed-anecdotes'>source code</a>.
+  </div>
+);
+
+export default App;
