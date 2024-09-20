@@ -1,0 +1,206 @@
+import React, { useState, useEffect } from 'react';
+import { Provider, useDispatch, useSelector } from 'react-redux';
+import { configureStore, createSlice } from '@reduxjs/toolkit';
+import axios from 'axios';
+import { BrowserRouter as Router, Route, Link, Routes, useParams } from 'react-router-dom';
+import './App.css'; // Optional: For adding styles
+
+// Redux slice for users
+const userListSlice = createSlice({
+  name: 'userList',
+  initialState: [],
+  reducers: {
+    setUsers: (state, action) => action.payload,
+  }
+});
+
+const { setUsers } = userListSlice.actions;
+
+// Redux slice for blogs
+const blogListSlice = createSlice({
+  name: 'blogList',
+  initialState: [],
+  reducers: {
+    setBlogs: (state, action) => action.payload,
+  }
+});
+
+const { setBlogs } = blogListSlice.actions;
+
+// Redux store
+const store = configureStore({
+  reducer: {
+    userList: userListSlice.reducer,
+    blogList: blogListSlice.reducer,
+  }
+});
+
+// Fetch users from the server
+const fetchUsers = async (dispatch) => {
+  try {
+    const response = await axios.get('http://localhost:3001/users');
+    dispatch(setUsers(response.data));
+  } catch (error) {
+    console.error('Error fetching users:', error);
+  }
+};
+
+// Fetch blogs from the server
+const fetchBlogs = async (dispatch) => {
+  try {
+    const response = await axios.get('http://localhost:3001/blogs');
+    dispatch(setBlogs(response.data));
+  } catch (error) {
+    console.error('Error fetching blogs:', error);
+  }
+};
+
+// Navigation component
+const Navigation = () => {
+  return (
+    <nav className="nav">
+      <Link to="/">Home</Link>
+      <Link to="/users">Users</Link>
+      <Link to="/blogs">Blogs</Link>
+    </nav>
+  );
+};
+
+// Users list component
+const UsersList = () => {
+  const dispatch = useDispatch();
+  const users = useSelector((state) => state.userList);
+
+  useEffect(() => {
+    fetchUsers(dispatch);
+  }, [dispatch]);
+
+  return (
+    <div>
+      <h2>Users</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Blogs created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((user) => (
+            <tr key={user.id}>
+              <td>
+                <Link to={`/users/${user.id}`}>{user.name}</Link>
+              </td>
+              <td>{user.blogs.length}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+// Individual User view
+const User = () => {
+  const { id } = useParams();
+  const users = useSelector((state) => state.userList);
+  const user = users.find((user) => user.id === id);
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      <h2>{user.name}</h2>
+      <h3>Blogs</h3>
+      <ul>
+        {user.blogs.map((blog) => (
+          <li key={blog.id}>
+            <Link to={`/blogs/${blog.id}`}>{blog.title}</Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+// Blog List view
+const BlogList = () => {
+  const dispatch = useDispatch();
+  const blogs = useSelector((state) => state.blogList);
+
+  useEffect(() => {
+    fetchBlogs(dispatch);
+  }, [dispatch]);
+
+  return (
+    <div>
+      <h2>Blogs</h2>
+      <ul>
+        {blogs.map((blog) => (
+          <li key={blog.id}>
+            <Link to={`/blogs/${blog.id}`}>{blog.title}</Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+// Individual Blog view
+const Blog = () => {
+  const { id } = useParams();
+  const blogs = useSelector((state) => state.blogList);
+  const blog = blogs.find((blog) => blog.id === id);
+
+  if (!blog) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      <h2>{blog.title}</h2>
+      <p><strong>Author:</strong> {blog.authorId}</p>
+    </div>
+  );
+};
+
+// Home component
+const Home = () => {
+  return (
+    <div>
+      <h2>Welcome to the Blog App</h2>
+      <p>Select 'Users' to see a list of users or 'Blogs' to see a list of blog posts.</p>
+    </div>
+  );
+};
+
+// Main App component with routing
+const App = () => {
+  return (
+    <Router>
+      <div>
+        <Navigation />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/users" element={<UsersList />} />
+          <Route path="/users/:id" element={<User />} />
+          <Route path="/blogs" element={<BlogList />} />
+          <Route path="/blogs/:id" element={<Blog />} />
+        </Routes>
+      </div>
+    </Router>
+  );
+};
+
+// Root component with Redux provider
+const Root = () => {
+  return (
+    <Provider store={store}>
+      <App />
+    </Provider>
+  );
+};
+
+export default Root;
