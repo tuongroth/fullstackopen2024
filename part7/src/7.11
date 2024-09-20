@@ -1,0 +1,180 @@
+import React, { useState, useEffect } from 'react';
+import { createRoot } from 'react-dom/client';
+import { Provider, useDispatch, useSelector } from 'react-redux';
+import { configureStore, createSlice } from '@reduxjs/toolkit';
+import axios from 'axios';
+
+// 1. Create Blog Slice (Redux logic for handling blogs)
+const blogSlice = createSlice({
+  name: 'blogs',
+  initialState: [], // Ensure initial state is an array
+  reducers: {
+    setBlogs: (state, action) => action.payload,
+    addBlog: (state, action) => [...state, action.payload],
+  },
+});
+
+const { setBlogs, addBlog } = blogSlice.actions;
+
+// 2. Create Notification Slice (For showing notifications)
+const notificationSlice = createSlice({
+  name: 'notification',
+  initialState: '',
+  reducers: {
+    setNotification: (state, action) => action.payload,
+    clearNotification: () => '',
+  },
+});
+
+const { setNotification, clearNotification } = notificationSlice.actions;
+
+// 3. Configure Redux Store
+const store = configureStore({
+  reducer: {
+    blogs: blogSlice.reducer,
+    notification: notificationSlice.reducer,
+  },
+});
+
+// 4. Fetch blogs from the backend (simulated API call)
+const fetchBlogs = async (dispatch) => {
+  try {
+    const response = await axios.get('/api/blogs'); // Simulate API request
+    if (Array.isArray(response.data)) {
+      dispatch(setBlogs(response.data));
+    } else {
+      console.error('Blogs data is not in expected format');
+    }
+  } catch (error) {
+    console.error('Failed to fetch blogs', error);
+    dispatch(setNotification('Error fetching blogs'));
+    setTimeout(() => {
+      dispatch(clearNotification());
+    }, 3000);
+  }
+};
+
+// 5. Post a new blog to the backend (simulated API call)
+const postNewBlog = async (blog, dispatch) => {
+  try {
+    const response = await axios.post('/api/blogs', blog); // Simulate API request
+    dispatch(addBlog(response.data));
+    dispatch(setNotification('New blog added!'));
+    setTimeout(() => {
+      dispatch(clearNotification());
+    }, 3000);
+  } catch (error) {
+    console.error('Failed to add blog', error);
+    dispatch(setNotification('Error adding blog'));
+    setTimeout(() => {
+      dispatch(clearNotification());
+    }, 3000);
+  }
+};
+
+// 6. BlogList Component (Displays the list of blogs from Redux store)
+const BlogList = () => {
+  const blogs = useSelector((state) => state.blogs);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    fetchBlogs(dispatch);
+  }, [dispatch]);
+
+  if (!Array.isArray(blogs)) {
+    return <p>No blogs available</p>;
+  }
+
+  return (
+    <div>
+      <h2>Blog List</h2>
+      <ul>
+        {blogs.map((blog) => (
+          <li key={blog.id}>{blog.title}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+// 7. NewBlogForm Component (Form to create a new blog)
+const NewBlogForm = () => {
+  const [title, setTitle] = useState('');
+  const dispatch = useDispatch();
+
+  const handleAddBlog = (e) => {
+    e.preventDefault();
+    const newBlog = { title }; // Simplified blog object
+    postNewBlog(newBlog, dispatch);
+    setTitle('');
+  };
+
+  return (
+    <div>
+      <h2>Create New Blog</h2>
+      <form onSubmit={handleAddBlog}>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Blog title"
+        />
+        <button type="submit">Add Blog</button>
+      </form>
+    </div>
+  );
+};
+
+// 8. Notification Component (Displays notification messages)
+const Notification = () => {
+  const notification = useSelector((state) => state.notification);
+
+  if (!notification) return null;
+
+  return <div className="notification">{notification}</div>;
+};
+
+// 9. ErrorBoundary Component (To catch errors in components)
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Error caught by ErrorBoundary:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <h2>Something went wrong.</h2>;
+    }
+
+    return this.props.children;
+  }
+}
+
+// 10. Main App Component wrapped in ErrorBoundary
+const App = () => {
+  return (
+    <Provider store={store}>
+      <div>
+        <Notification />
+        <ErrorBoundary>
+          <NewBlogForm />
+          <BlogList />
+        </ErrorBoundary>
+      </div>
+    </Provider>
+  );
+};
+
+// Render the App
+const root = createRoot(document.getElementById('root'));
+root.render(<App />);
+
+export default App;
