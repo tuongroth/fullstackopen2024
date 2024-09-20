@@ -1,0 +1,196 @@
+import React, { useState } from 'react';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link,
+  useParams,
+  useNavigate,
+} from 'react-router-dom';
+
+// Custom useField hook with reset functionality
+const useField = (type) => {
+  const [value, setValue] = useState('');
+
+  const onChange = (event) => {
+    setValue(event.target.value);
+  };
+
+  // Separate the input-relevant props and the reset functionality
+  const reset = () => setValue('');
+
+  return {
+    input: {
+      type,
+      value,
+      onChange,
+    },
+    reset,
+  };
+};
+
+const App = () => {
+  const [anecdotes, setAnecdotes] = useState([
+    {
+      content: 'If it hurts, do it more often',
+      author: 'Jez Humble',
+      info: 'https://martinfowler.com/bliki/FrequencyReducesDifficulty.html',
+      votes: 0,
+      id: 1,
+    },
+    {
+      content: 'Premature optimization is the root of all evil',
+      author: 'Donald Knuth',
+      info: 'http://wiki.c2.com/?PrematureOptimization',
+      votes: 0,
+      id: 2,
+    },
+  ]);
+
+  const [notification, setNotification] = useState('');
+
+  return (
+    <Router>
+      <div>
+        <Menu />
+        {notification && <Notification message={notification} />}
+        <Routes>
+          <Route path="/" element={<AnecdoteList anecdotes={anecdotes} />} />
+          <Route
+            path="/create"
+            element={
+              <AnecdoteForm
+                setAnecdotes={setAnecdotes}
+                anecdotes={anecdotes}
+                setNotification={setNotification}
+              />
+            }
+          />
+          <Route path="/anecdotes/:id" element={<Anecdote anecdotes={anecdotes} />} />
+        </Routes>
+        <Footer />
+      </div>
+    </Router>
+  );
+};
+
+// Menu component for navigation
+const Menu = () => (
+  <div style={{ paddingBottom: '10px' }}>
+    <Link to="/">Anecdotes</Link>
+    <Link to="/create" style={{ marginLeft: 10 }}>
+      Create New
+    </Link>
+  </div>
+);
+
+// Notification component for success messages
+const Notification = ({ message }) => (
+  <div style={{ border: '1px solid green', padding: '10px', marginBottom: '10px', color: 'green' }}>
+    {message}
+  </div>
+);
+
+// AnecdoteList component to show all anecdotes
+const AnecdoteList = ({ anecdotes }) => (
+  <div>
+    <h2>Anecdotes</h2>
+    <ul>
+      {anecdotes.map((anecdote) => (
+        <li key={anecdote.id}>
+          <Link to={`/anecdotes/${anecdote.id}`}>
+            {anecdote.content} by {anecdote.author}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  </div>
+);
+
+// Component to show a single anecdote
+const Anecdote = ({ anecdotes }) => {
+  const { id } = useParams();
+  const anecdote = anecdotes.find((anecdote) => anecdote.id === Number(id));
+
+  return (
+    <div>
+      <h2>
+        {anecdote.content} by {anecdote.author}
+      </h2>
+      <p>Has {anecdote.votes} votes</p>
+      <p>
+        For more info, see <a href={anecdote.info}>{anecdote.info}</a>
+      </p>
+    </div>
+  );
+};
+
+// Form component for creating a new anecdote
+const AnecdoteForm = ({ setAnecdotes, anecdotes, setNotification }) => {
+  const content = useField('text');
+  const author = useField('text');
+  const info = useField('text');
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const newAnecdote = {
+      content: content.input.value,
+      author: author.input.value,
+      info: info.input.value,
+      votes: 0,
+      id: Math.floor(Math.random() * 10000),
+    };
+
+    setAnecdotes(anecdotes.concat(newAnecdote));
+
+    setNotification(`A new anecdote "${newAnecdote.content}" has been created!`);
+
+    setTimeout(() => {
+      setNotification('');
+    }, 5000);
+
+    navigate('/');
+  };
+
+  const handleReset = () => {
+    content.reset();
+    author.reset();
+    info.reset();
+  };
+
+  return (
+    <div>
+      <h2>Create a new anecdote</h2>
+      <form onSubmit={handleSubmit}>
+        <div>
+          Content
+          <input {...content.input} />
+        </div>
+        <div>
+          Author
+          <input {...author.input} />
+        </div>
+        <div>
+          URL for more info
+          <input {...info.input} />
+        </div>
+        <button type="submit">Create</button>
+        <button type="button" onClick={handleReset} style={{ marginLeft: '10px' }}>
+          Reset
+        </button>
+      </form>
+    </div>
+  );
+};
+
+// Footer component
+const Footer = () => (
+  <div style={{ marginTop: '20px', borderTop: '1px solid #ccc', paddingTop: '10px' }}>
+    Anecdote app for <a href="https://fullstackopen.com/">Full Stack Open</a>. See the{' '}
+    <a href="https://github.com/fullstack-hy2020/routed-anecdotes">source code</a>.
+  </div>
+);
+
+export default App;
