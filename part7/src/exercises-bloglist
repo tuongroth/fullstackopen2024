@@ -1,0 +1,158 @@
+// Import necessary modules
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import styled from 'styled-components';
+
+// Styled components for styling the layout
+const Page = styled.div`
+  padding: 2em;
+  background: papayawhip;
+  height: 100vh;
+`;
+
+const Navigation = styled.div`
+  background: BurlyWood;
+  padding: 1em;
+  margin-bottom: 1em;
+`;
+
+const Footer = styled.div`
+  background: Chocolate;
+  padding: 1em;
+  margin-top: 1em;
+`;
+
+const Button = styled.button`
+  background: Bisque;
+  font-size: 1em;
+  margin: 1em;
+  padding: 0.5em 1em;
+  border: 2px solid Chocolate;
+  border-radius: 3px;
+  cursor: pointer;
+`;
+
+const Input = styled.input`
+  margin: 0.5em 0;
+  padding: 0.5em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+`;
+
+const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+`;
+
+const Th = styled.th`
+  border: 1px solid #ddd;
+  padding: 8px;
+  background-color: #f2f2f2;
+`;
+
+const Td = styled.td`
+  border: 1px solid #ddd;
+  padding: 8px;
+`;
+
+// Login component
+const Login = ({ onLogin }) => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onLogin(username);
+  };
+
+  return (
+    <div>
+      <h2>Login</h2>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Username:</label>
+          <Input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
+        </div>
+        <div>
+          <label>Password:</label>
+          <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        </div>
+        <Button type="submit">Login</Button>
+      </form>
+    </div>
+  );
+};
+
+// Home component with a table
+const Home = () => {
+  const data = [
+    { id: 1, name: 'John Doe', email: 'john@example.com' },
+    { id: 2, name: 'Jane Doe', email: 'jane@example.com' },
+  ];
+
+  return (
+    <div>
+      <h2>Home</h2>
+      <Table>
+        <thead>
+          <tr>
+            <Th>ID</Th>
+            <Th>Name</Th>
+            <Th>Email</Th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((item) => (
+            <tr key={item.id}>
+              <Td>{item.id}</Td>
+              <Td>{item.name}</Td>
+              <Td>{item.email}</Td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    </div>
+  );
+};
+
+// App component
+const App = () => {
+  const [user, setUser] = useState(null);
+
+  const login = (username) => {
+    setUser(username);
+  };
+
+  return (
+    <Router>
+      <Page>
+        <Navigation>
+          <Link to="/">Home</Link> |{' '}
+          {user ? (
+            <span>Welcome, {user}</span>
+          ) : (
+            <Link to="/login">Login</Link>
+          )}
+        </Navigation>
+
+        <Routes>
+          <Route
+            path="/"
+            element={user ? <Home /> : <Navigate to="/login" replace />}
+          />
+          <Route
+            path="/login"
+            element={user ? <Navigate to="/" replace /> : <Login onLogin={login} />}
+          />
+        </Routes>
+
+        <Footer>
+          <em>Note app, Department of Computer Science 2022</em>
+        </Footer>
+      </Page>
+    </Router>
+  );
+};
+
+export default App;
