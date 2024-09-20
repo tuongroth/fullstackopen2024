@@ -1,0 +1,154 @@
+import React, { useState, useEffect } from 'react';
+import { Provider, useDispatch, useSelector } from 'react-redux';
+import { configureStore, createSlice } from '@reduxjs/toolkit';
+import axios from 'axios';
+import { BrowserRouter as Router, Route, Link, Routes, useParams } from 'react-router-dom';
+
+// Redux slice for blogs (with comments)
+const blogSlice = createSlice({
+  name: 'blogs',
+  initialState: [],
+  reducers: {
+    setBlogs: (state, action) => action.payload,
+    updateBlogComments: (state, action) => {
+      const blogIndex = state.findIndex(blog => blog.id === action.payload.id);
+      if (blogIndex >= 0) {
+        state[blogIndex] = action.payload;
+      }
+    }
+  }
+});
+
+const { setBlogs, updateBlogComments } = blogSlice.actions;
+
+// Redux store
+const store = configureStore({
+  reducer: {
+    blogs: blogSlice.reducer,
+  }
+});
+
+// Fetch all blogs from the server
+const fetchBlogs = async (dispatch) => {
+  try {
+    const response = await axios.get('http://localhost:3001/blogs');
+    dispatch(setBlogs(response.data));
+  } catch (error) {
+    console.error('Error fetching blogs:', error);
+  }
+};
+
+// Fetch individual blog (with comments) from the server
+const fetchBlogWithComments = async (id, dispatch) => {
+  try {
+    const response = await axios.get(`http://localhost:3001/blogs/${id}`);
+    dispatch(updateBlogComments(response.data));
+  } catch (error) {
+    console.error('Error fetching blog details:', error);
+  }
+};
+
+// Post a new comment to the server
+const addComment = async (id, comment, dispatch) => {
+  try {
+    await axios.post(`http://localhost:3001/blogs/${id}/comments`, { comment });
+    fetchBlogWithComments(id, dispatch); // Refresh comments
+  } catch (error) {
+    console.error('Error adding comment:', error);
+  }
+};
+
+// Blog list component
+const BlogList = () => {
+  const dispatch = useDispatch();
+  const blogs = useSelector((state) => state.blogs);
+
+  useEffect(() => {
+    fetchBlogs(dispatch);
+  }, [dispatch]);
+
+  return (
+    <div className="container">
+      <h2>Blogs</h2>
+      <ul>
+        {blogs.map((blog) => (
+          <li key={blog.id}>
+            <Link to={`/blogs/${blog.id}`}>{blog.title}</Link> by {blog.author}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+// Blog details and comments component
+const BlogDetails = () => {
+  const dispatch = useDispatch();
+  const { id } = useParams();
+  const blog = useSelector((state) => state.blogs.find((b) => b.id === id));
+  const [newComment, setNewComment] = useState('');
+
+  useEffect(() => {
+    if (!blog) {
+      fetchBlogWithComments(id, dispatch);
+    }
+  }, [id, blog, dispatch]);
+
+  if (!blog) return <div>Loading...</div>;
+
+  const handleCommentSubmit = (e) => {
+    e.preventDefault();
+    if (newComment.trim()) {
+      addComment(id, newComment, dispatch);
+      setNewComment('');
+    }
+  };
+
+  return (
+    <div className="container">
+      <h2>{blog.title}</h2>
+      <p>by {blog.author}</p>
+      <h3>Comments</h3>
+      <ul>
+        {blog.comments.map((comment, index) => (
+          <li key={index}>{comment}</li>
+        ))}
+      </ul>
+      <form onSubmit={handleCommentSubmit}>
+        <input
+          type="text"
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          placeholder="Add a comment"
+        />
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  );
+};
+
+// Main App component with routing
+const App = () => {
+  return (
+    <Router>
+      <nav>
+        <Link to="/">Home</Link> | <Link to="/blogs">Blogs</Link>
+      </nav>
+      <Routes>
+        <Route path="/blogs" element={<BlogList />} />
+        <Route path="/blogs/:id" element={<BlogDetails />} />
+      </Routes>
+    </Router>
+  );
+};
+
+// Root component with Redux provider
+const Root = () => {
+  return (
+    <Provider store={store}>
+      <App />
+    </Provider>
+  );
+};
+
+export default Root;
