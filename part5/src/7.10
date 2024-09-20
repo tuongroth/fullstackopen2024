@@ -1,0 +1,71 @@
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { Provider, useDispatch, useSelector } from 'react-redux';
+import { configureStore, createSlice } from '@reduxjs/toolkit';
+
+// 1. Create Notification Slice
+const notificationSlice = createSlice({
+  name: 'notification',
+  initialState: '',
+  reducers: {
+    setNotification: (state, action) => action.payload,
+    clearNotification: () => '',
+  },
+});
+
+const { setNotification, clearNotification } = notificationSlice.actions;
+
+// 2. Configure Redux Store
+const store = configureStore({
+  reducer: {
+    notification: notificationSlice.reducer,
+  },
+});
+
+// 3. Notification Component (Reads from Redux State)
+const Notification = () => {
+  const notification = useSelector((state) => state.notification);
+
+  if (!notification) return null;
+
+  return <div className="notification">{notification}</div>;
+};
+
+// 4. Content Component (Dispatches Actions)
+const Content = () => {
+  const dispatch = useDispatch();
+
+  const handleShowNotification = () => {
+    dispatch(setNotification('This is a notification!'));
+
+    // Automatically clear the notification after 3 seconds
+    setTimeout(() => {
+      dispatch(clearNotification());
+    }, 3000);
+  };
+
+  return (
+    <div>
+      <h1>Main Content</h1>
+      <button onClick={handleShowNotification}>Show Notification</button>
+    </div>
+  );
+};
+
+// 5. Main App Component
+const App = () => {
+  return (
+    <Provider store={store}>
+      <div>
+        <Notification />
+        <Content />
+      </div>
+    </Provider>
+  );
+};
+
+// Render the App
+const root = createRoot(document.getElementById('root'));
+root.render(<App />);
+
+export default App;
