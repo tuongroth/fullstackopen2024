@@ -1,10 +1,29 @@
 {
   "notes": [
-    { "id": 1, "content": "custom-hooks are awesome!" },
-    { "id": 2, "content": "best feature ever <3" }
+    {
+      "id": 1,
+      "content": "Note 1"
+    },
+    {
+      "id": 2,
+      "content": "Note 2"
+    }
   ],
   "persons": [
-    { "id": 1, "name": "mluukkai", "number": "040-5483923" },
-    { "id": 2, "name": "hellas", "number": "012-123123" }
+    {
+      "id": 1,
+      "name": "John Doe",
+      "number": "123-456-7890"
+    },
+    {
+      "id": 2,
+      "name": "Jane Smith",
+      "number": "987-654-3210"
+    },
+    {
+      "id": "0c2d",
+      "name": "Jane Smith",
+      "number": "987-654-3210"
+    }
   ]
 }
