@@ -1,0 +1,95 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { createStore } from 'redux';
+import { Provider, useDispatch, useSelector } from 'react-redux';
+import axios from 'axios';
+
+// Reducer
+const initialState = {
+  good: 0,
+  ok: 0,
+  bad: 0
+};
+
+const counterReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case 'GOOD':
+      return { ...state, good: state.good + 1 };
+    case 'OK':
+      return { ...state, ok: state.ok + 1 };
+    case 'BAD':
+      return { ...state, bad: state.bad + 1 };
+    case 'ZERO':
+      return initialState;
+    default:
+      return state;
+  }
+};
+
+// Store
+const store = createStore(counterReducer);
+
+// API base URL
+const API_URL = 'http://localhost:3002';
+
+// App Component
+const App = () => {
+  const dispatch = useDispatch();
+  const feedback = useSelector(state => state);
+
+  // Function to send the action to the backend
+  const sendActionToBackend = async (actionType) => {
+    try {
+      const response = await axios.post(`${API_URL}/dispatch`, { type: actionType });
+      console.log('Backend Response:', response.data);
+    } catch (error) {
+      console.error('Error sending action to the backend:', error);
+    }
+  };
+
+  // Dispatch actions and send them to the backend
+  const handleGood = () => {
+    dispatch({ type: 'GOOD' });
+    sendActionToBackend('GOOD');
+  };
+
+  const handleOk = () => {
+    dispatch({ type: 'OK' });
+    sendActionToBackend('OK');
+  };
+
+  const handleBad = () => {
+    dispatch({ type: 'BAD' });
+    sendActionToBackend('BAD');
+  };
+
+  const handleReset = () => {
+    dispatch({ type: 'ZERO' });
+    sendActionToBackend('ZERO');
+  };
+
+  return (
+    <div>
+      <h1>Unicafe Feedback</h1>
+      <button onClick={handleGood}>Good</button>
+      <button onClick={handleOk}>Ok</button>
+      <button onClick={handleBad}>Bad</button>
+      <button onClick={handleReset}>Reset</button>
+      <div>
+        <h2>Statistics</h2>
+        <p>Good: {feedback.good}</p>
+        <p>Ok: {feedback.ok}</p>
+        <p>Bad: {feedback.bad}</p>
+        <p>Running on backend port: 3002</p>
+      </div>
+    </div>
+  );
+};
+
+// Render the App
+ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById('root')
+);
