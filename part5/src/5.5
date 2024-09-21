@@ -1,0 +1,101 @@
+import React, { useState, useEffect } from 'react';
+
+const App = () => {
+  const [blogs, setBlogs] = useState([]);
+  const [newTitle, setNewTitle] = useState('');
+  const [newContent, setNewContent] = useState('');
+  const [formVisible, setFormVisible] = useState(false); // State to toggle form visibility
+
+  // Fetch all notes from the backend on component mount
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/blogs');
+        if (!response.ok) {
+          throw new Error('Failed to fetch blogs');
+        }
+        const data = await response.json();
+        setBlogs(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchBlogs();
+  }, []);
+
+  // Handle creating a new note
+  const handleCreateNote = async (event) => {
+    event.preventDefault();
+
+    try {
+      const response = await fetch('http://localhost:3001/api/blogs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: newTitle,
+          content: newContent,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create note');
+      }
+
+      const createdNote = await response.json();
+      setBlogs([...blogs, createdNote]); // Add the new note to the state
+      setNewTitle(''); // Clear the input field
+      setNewContent(''); // Clear the textarea
+      setFormVisible(false); // Hide the form after submission
+    } catch (error) {
+      console.error('Failed to create new note:', error);
+    }
+  };
+
+  return (
+    <div>
+      <h2>Blogs</h2>
+      {blogs.length > 0 ? (
+        blogs.map(blog => (
+          <div key={blog._id}>
+            <h3>{blog.title}</h3>
+            <p>{blog.content}</p>
+          </div>
+        ))
+      ) : (
+        <p>No blogs available.</p>
+      )}
+      <div>
+        <button onClick={() => setFormVisible(!formVisible)}>
+          {formVisible ? 'Hide Form' : 'Create New Note'}
+        </button>
+        {formVisible && (
+          <div>
+            <h2>Create New Note</h2>
+            <form onSubmit={handleCreateNote}>
+              <div>
+                <input
+                  placeholder="Title"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                />
+              </div>
+              <div>
+                <textarea
+                  placeholder="Content"
+                  value={newContent}
+                  onChange={(e) => setNewContent(e.target.value)}
+                />
+              </div>
+              <button type="submit">Create Note</button>
+            </form>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default App;
