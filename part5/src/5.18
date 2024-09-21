@@ -1,0 +1,63 @@
+import React, { useState } from 'react';
+
+const App = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [user, setUser] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleLogin = (event) => {
+    event.preventDefault();
+    if (username === 'testuser' && password === 'testpassword') {
+      setUser({ username });
+      setErrorMessage('');
+    } else {
+      setErrorMessage('Invalid credentials');
+    }
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setUsername('');
+    setPassword('');
+  };
+
+  if (user) {
+    return (
+      <div>
+        <h2>{user.username} is logged in</h2>
+        <button onClick={handleLogout}>Logout</button>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h2>Login to the application</h2>
+      {errorMessage && <div style={{ color: 'red' }}>{errorMessage}</div>}
+      <form onSubmit={handleLogin}>
+        <div>
+          Username
+          <input
+            type="text"
+            value={username}
+            onChange={({ target }) => setUsername(target.value)}
+            id="username"
+          />
+        </div>
+        <div>
+          Password
+          <input
+            type="password"
+            value={password}
+            onChange={({ target }) => setPassword(target.value)}
+            id="password"
+          />
+        </div>
+        <button type="submit" id="login-button">Login</button>
+      </form>
+    </div>
+  );
+};
+
+export default App;
