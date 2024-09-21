@@ -1,0 +1,97 @@
+import React, { useState } from 'react';
+import Togglable from './components/Togglable';
+
+const App = () => {
+  const [blogs, setBlogs] = useState([]);
+  const [newBlogTitle, setNewBlogTitle] = useState('');
+  const [newBlogAuthor, setNewBlogAuthor] = useState('');
+  const [newBlogUrl, setNewBlogUrl] = useState('');
+
+  const handleCreateBlog = (event) => {
+    event.preventDefault();
+    const newBlog = {
+      title: newBlogTitle,
+      author: newBlogAuthor,
+      url: newBlogUrl,
+      likes: 0,
+      user: { id: 'currentUserId', name: 'Current User' }, // Simulating the current user
+    };
+
+    setBlogs(blogs.concat(newBlog));
+    setNewBlogTitle('');
+    setNewBlogAuthor('');
+    setNewBlogUrl('');
+  };
+
+  const handleLikeBlog = (index) => {
+    const updatedBlogs = [...blogs];
+    updatedBlogs[index].likes += 1; // Increment likes
+    setBlogs(updatedBlogs);
+  };
+
+  const handleDeleteBlog = (index) => {
+    const updatedBlogs = blogs.filter((_, i) => i !== index);
+    setBlogs(updatedBlogs);
+  };
+
+  // Sort blogs by likes in descending order
+  const sortedBlogs = [...blogs].sort((a, b) => b.likes - a.likes);
+
+  return (
+    <div>
+      <h1>Blog App</h1>
+
+      <Togglable buttonLabel="Create new blog">
+        <form onSubmit={handleCreateBlog} className="blog-form">
+          <div>
+            <label htmlFor="title">Title</label>
+            <input
+              id="title"
+              type="text"
+              value={newBlogTitle}
+              onChange={({ target }) => setNewBlogTitle(target.value)}
+            />
+          </div>
+          <div>
+            <label htmlFor="author">Author</label>
+            <input
+              id="author"
+              type="text"
+              value={newBlogAuthor}
+              onChange={({ target }) => setNewBlogAuthor(target.value)}
+            />
+          </div>
+          <div>
+            <label htmlFor="url">URL</label>
+            <input
+              id="url"
+              type="text"
+              value={newBlogUrl}
+              onChange={({ target }) => setNewBlogUrl(target.value)}
+            />
+          </div>
+          <button type="submit">Create</button>
+        </form>
+      </Togglable>
+
+      <h2>Blogs</h2>
+      {sortedBlogs.map((blog, index) => (
+        <div key={index} className="blog">
+          <h3>{blog.title} by {blog.author}</h3>
+          <Togglable buttonLabel="View details">
+            <div>
+              <p>URL: {blog.url}</p>
+              <p>Likes: {blog.likes}</p>
+              <button onClick={() => handleLikeBlog(index)}>Like</button>
+              {blog.user.id === 'currentUserId' && ( // Show delete button for the creator
+                <button onClick={() => handleDeleteBlog(index)}>Delete</button>
+              )}
+            </div>
+          </Togglable>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default App;
