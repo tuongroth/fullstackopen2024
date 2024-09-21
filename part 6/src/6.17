@@ -1,0 +1,97 @@
+// src/App.tsx
+import React, { useEffect } from 'react';
+
+import { useDispatch, useSelector, Provider } from 'react-redux';
+import { configureStore, createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { thunk } from 'redux-thunk'; // Import redux-thunk
+import axios from 'axios';
+
+// TypeScript interfaces
+interface Anecdote {
+  id: number;
+  content: string;
+  votes: number;
+}
+
+interface AnecdoteState {
+  anecdotes: Anecdote[];
+}
+
+// Initial state
+const initialState: AnecdoteState = {
+  anecdotes: [],
+};
+
+// Async thunk for fetching anecdotes
+export const fetchAnecdotes = createAsyncThunk('anecdotes/fetchAnecdotes', async () => {
+  const response = await axios.get('http://localhost:3001/anecdotes');
+  return response.data;
+});
+
+// Async thunk for creating a new anecdote
+export const createAnecdote = createAsyncThunk('anecdotes/createAnecdote', async (content: string) => {
+  const response = await axios.post('http://localhost:3001/anecdotes', { content, votes: 0 });
+  return response.data;
+});
+
+// Slice definition
+const anecdoteSlice = createSlice({
+  name: 'anecdotes',
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchAnecdotes.fulfilled, (state, action) => {
+        state.anecdotes = action.payload;
+      })
+      .addCase(createAnecdote.fulfilled, (state, action) => {
+        state.anecdotes.push(action.payload);
+      });
+  },
+});
+
+// Configure store
+const store = configureStore({
+  reducer: {
+    anecdotes: anecdoteSlice.reducer,
+  },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(thunk),
+});
+
+// Component
+const App = () => {
+  const dispatch = useDispatch();
+  const anecdotes = useSelector((state: any) => state.anecdotes.anecdotes);
+
+  useEffect(() => {
+    dispatch(fetchAnecdotes());
+  }, [dispatch]);
+
+  const addAnecdote = async () => {
+    const content = prompt('Enter anecdote content:');
+    if (content) {
+      dispatch(createAnecdote(content));
+    }
+  };
+
+  return (
+    <div>
+      <h1>Anecdotes</h1>
+      <ul>
+        {anecdotes.map((anecdote: any) => (
+          <li key={anecdote.id}>{anecdote.content}</li>
+        ))}
+      </ul>
+      <button onClick={addAnecdote}>Add Anecdote</button>
+    </div>
+  );
+};
+
+// Root component to provide store
+const Root = () => (
+  <Provider store={store}>
+    <App />
+  </Provider>
+);
+
+export default Root;
