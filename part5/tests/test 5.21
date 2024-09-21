@@ -1,0 +1,77 @@
+const { test, expect, beforeEach, describe } = require('@playwright/test');
+
+describe('Blog app', () => {
+  beforeEach(async ({ page }) => {
+    await page.goto('http://localhost:5173');
+  });
+
+  test('Login form is shown', async ({ page }) => {
+    const loginButton = await page.locator('#login-button');
+    await expect(loginButton).toBeVisible();
+  });
+
+  describe('Login', () => {
+    test('succeeds with correct credentials', async ({ page }) => {
+      await page.fill('#username', 'testuser');
+      await page.fill('#password', 'testpassword');
+      await page.click('#login-button');
+      const logoutButton = await page.locator('button', { hasText: 'Logout' });
+      await expect(logoutButton).toBeVisible();
+    });
+
+    test('fails with wrong credentials', async ({ page }) => {
+      await page.fill('#username', 'wronguser');
+      await page.fill('#password', 'wrongpassword');
+      await page.click('#login-button');
+      const errorMessage = await page.locator('text=Invalid credentials');
+      await expect(errorMessage).toBeVisible();
+    });
+  });
+
+  describe('When logged in', () => {
+    beforeEach(async ({ page }) => {
+      await page.fill('#username', 'testuser');
+      await page.fill('#password', 'testpassword');
+      await page.click('#login-button');
+    });
+
+    test('a new blog can be created', async ({ page }) => {
+      await page.fill('#blog-title', 'Test Blog Title');
+      await page.fill('#blog-author', 'Test Author');
+      await page.click('#create-blog-button');
+
+      const blogListItem = await page.locator('li', { hasText: 'Test Blog Title by Test Author' });
+      await expect(blogListItem).toBeVisible();
+    });
+
+    test('a blog can be liked', async ({ page }) => {
+      // Create the blog first
+      await page.fill('#blog-title', 'Test Blog Title');
+      await page.fill('#blog-author', 'Test Author');
+      await page.click('#create-blog-button');
+
+      // Like the blog
+      const likeButton = await page.locator('#like-button-0');
+      await likeButton.click();
+
+      // Verify the number of likes is updated
+      const blogListItem = await page.locator('li', { hasText: 'Likes: 1' });
+      await expect(blogListItem).toBeVisible();
+    });
+
+    test('a blog can be deleted by the user who created it', async ({ page }) => {
+      // Create the blog first
+      await page.fill('#blog-title', 'Test Blog Title');
+      await page.fill('#blog-author', 'Test Author');
+      await page.click('#create-blog-button');
+
+      // Delete the blog
+      const deleteButton = await page.locator('#delete-button-0');
+      await deleteButton.click();
+
+      // Verify that the blog has been deleted
+      const blogListItem = await page.locator('li', { hasText: 'Test Blog Title by Test Author' });
+      await expect(blogListItem).toHaveCount(0); // Ensures the blog no longer exists
+    });
+  });
+});
