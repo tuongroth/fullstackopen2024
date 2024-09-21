@@ -1,29 +1,44 @@
 {
-  "notes": [
+  "blogs": [
     {
-      "id": 1,
-      "content": "Note 1"
+      "id": "1",
+      "title": "Learning Redux",
+      "author": "John Doe",
+      "comments": [
+        "This is a great post!",
+        "Thanks for sharing"
+      ]
     },
     {
-      "id": 2,
-      "content": "Note 2"
+      "id": "2",
+      "title": "React Hooks in Depth",
+      "author": "Jane Smith",
+      "comments": [
+        "Very informative.",
+        "I learned a lot from this post."
+      ]
     }
   ],
-  "persons": [
+  "users": [
     {
-      "id": 1,
+      "id": "1",
       "name": "John Doe",
-      "number": "123-456-7890"
+      "blogs": [
+        {
+          "id": "1",
+          "title": "Learning Redux"
+        }
+      ]
     },
     {
-      "id": 2,
+      "id": "2",
       "name": "Jane Smith",
-      "number": "987-654-3210"
-    },
-    {
-      "id": "0c2d",
-      "name": "Jane Smith",
-      "number": "987-654-3210"
+      "blogs": [
+        {
+          "id": "2",
+          "title": "React Hooks in Depth"
+        }
+      ]
     }
   ]
 }
