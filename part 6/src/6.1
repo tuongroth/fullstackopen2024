@@ -1,0 +1,183 @@
+AnecdoteForm.tsx
+import { useDispatch } from 'react-redux';
+import { useState } from 'react';
+import { addAnecdote } from '../reducers/anecdoteReducer';
+import { setNotification, clearNotification } from '../reducers/notificationReducer';
+
+const AnecdoteForm = () => {
+  const [content, setContent] = useState('');
+  const dispatch = useDispatch();
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (content) {
+      dispatch(addAnecdote({ content, votes: 0 }));
+      dispatch(setNotification(`You added '${content}'`));
+      setContent('');
+      setTimeout(() => {
+        dispatch(clearNotification());
+      }, 5000);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input value={content} onChange={(e) => setContent(e.target.value)} />
+      <button type="submit">Add</button>
+    </form>
+  );
+};
+
+export default AnecdoteForm;
+
+
+AnecdoteList.tsx
+import { useSelector, useDispatch } from 'react-redux';
+import { voteAnecdote } from '../reducers/anecdoteReducer';
+
+const AnecdoteList = () => {
+  const anecdotes = useSelector(state => state.anecdotes);
+  const dispatch = useDispatch();
+
+  const handleVote = (id) => {
+    dispatch(voteAnecdote(id));
+  };
+
+  return (
+    <div>
+      {anecdotes.map(anecdote =>
+        <div key={anecdote.id}>
+          <div>{anecdote.content}</div>
+          <div>
+            has {anecdote.votes}
+            <button onClick={() => handleVote(anecdote.id)}>vote</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AnecdoteList;
+;
+
+Notification.jsx
+// src/components/Notification.jsx
+import { useSelector } from 'react-redux'
+
+const Notification = () => {
+  const notification = useSelector((state) => state.notification)
+  const style = {
+    border: 'solid',
+    padding: 10,
+    borderWidth: 1
+  }
+  return (
+    <div style={style}>
+      {notification}
+    </div>
+  )
+}
+
+export default Notification
+
+
+reducers
+anecdoteReducer.ts
+import { createSlice } from '@reduxjs/toolkit';
+
+const initialAnecdotes = [
+  { content: 'If it hurts, do it more often', votes: 0, id: 1 },
+  { content: 'Adding manpower to a late software project makes it later!', votes: 0, id: 2 },
+  { content: 'Premature optimization is the root of all evil.', votes: 0, id: 3 },
+  { content: 'Debugging is twice as hard as writing the code in the first place.', votes: 0, id: 4 },
+];
+
+const anecdoteSlice = createSlice({
+  name: 'anecdotes',
+  initialState: initialAnecdotes,
+  reducers: {
+    voteAnecdote(state, action) {
+      const id = action.payload;
+      const anecdoteToVote = state.find(a => a.id === id);
+      if (anecdoteToVote) {
+        anecdoteToVote.votes += 1;
+      }
+    },
+    addAnecdote(state, action) {
+      state.push(action.payload);
+    },
+  },
+});
+
+export const { voteAnecdote, addAnecdote } = anecdoteSlice.actions;
+export default anecdoteSlice.reducer;
+
+notificationReducer.js
+import { createSlice } from '@reduxjs/toolkit'
+
+const initialState = 'Welcome to the Anecdotes app!'
+
+const notificationSlice = createSlice({
+  name: 'notification',
+  initialState,
+  reducers: {
+    setNotification(state, action) {
+      return action.payload
+    },
+    clearNotification() {
+      return ''
+    }
+  }
+})
+
+export const { setNotification, clearNotification } = notificationSlice.actions
+export default notificationSlice.reducer
+
+// src/App.jsx
+import AnecdoteList from './components/AnecdoteList'
+import AnecdoteForm from './components/AnecdoteForm'
+import Notification from './components/Notification'
+import { Provider } from 'react-redux'
+import store from './store'
+
+const App = () => {
+  return (
+    <Provider store={store}>
+      <div>
+        <h2>Anecdotes</h2>
+        <Notification />
+        <AnecdoteList />
+        <AnecdoteForm />
+      </div>
+    </Provider>
+  )
+}
+
+export default App
+
+
+import ReactDOM from 'react-dom/client';
+import { Provider } from 'react-redux';
+import App from './App';
+import store from './store'; // Import the Redux store
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <Provider store={store}>
+    <App />
+  </Provider>
+);
+
+store.js
+import { configureStore } from '@reduxjs/toolkit';
+import anecdoteReducer from './reducers/anecdoteReducer';
+import notificationReducer from './reducers/notificationReducer';
+
+const store = configureStore({
+  reducer: {
+    anecdotes: anecdoteReducer,
+    notification: notificationReducer,
+  },
+});
+
+export default store;
