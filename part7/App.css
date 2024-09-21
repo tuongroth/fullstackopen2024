@@ -1,0 +1,55 @@
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #007BFF; /* Blue background */
+  color: #fff; /* White text for better contrast */
+  margin: 0;
+  padding: 20px;
+}
+
+.app-container {
+  max-width: 800px;
+  margin: auto;
+}
+
+.navbar {
+  background: #333;
+  padding: 10px;
+}
+
+.nav-link {
+  color: #fff;
+  text-decoration: none;
+  margin: 0 15px;
+}
+
+.nav-link:hover {
+  text-decoration: underline;
+}
+
+.user-list,
+.user-details {
+  margin: 20px 0;
+  background: rgba(255, 255, 255, 0.1); /* Slightly transparent white */
+  padding: 15px;
+  border-radius: 5px;
+}
+
+.user-link {
+  color: #fff;
+}
+
+.user-link:hover {
+  text-decoration: underline;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
