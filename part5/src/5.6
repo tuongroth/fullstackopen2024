@@ -1,0 +1,71 @@
+import React, { useState } from 'react';
+import Blog from './components/Blog';
+import Togglable from './components/Togglable';
+
+const App = () => {
+  const [blogs, setBlogs] = useState([]);
+  const [newBlogTitle, setNewBlogTitle] = useState('');
+  const [newBlogAuthor, setNewBlogAuthor] = useState('');
+  const [newBlogUrl, setNewBlogUrl] = useState('');
+
+  const handleCreateBlog = (event) => {
+    event.preventDefault();
+    const newBlog = {
+      title: newBlogTitle,
+      author: newBlogAuthor,
+      url: newBlogUrl,
+      likes: 0, // Initialize likes to 0
+    };
+    
+    setBlogs(blogs.concat(newBlog)); // Add new blog to state
+    setNewBlogTitle('');
+    setNewBlogAuthor('');
+    setNewBlogUrl('');
+  };
+
+  return (
+    <div>
+      <h1>Blog App</h1>
+
+      <Togglable buttonLabel="Create new blog">
+        <form onSubmit={handleCreateBlog} className="blog-form">
+          <div>
+            <label htmlFor="title">Title</label>
+            <input
+              id="title"
+              type="text"
+              value={newBlogTitle}
+              onChange={({ target }) => setNewBlogTitle(target.value)}
+            />
+          </div>
+          <div>
+            <label htmlFor="author">Author</label>
+            <input
+              id="author"
+              type="text"
+              value={newBlogAuthor}
+              onChange={({ target }) => setNewBlogAuthor(target.value)}
+            />
+          </div>
+          <div>
+            <label htmlFor="url">URL</label>
+            <input
+              id="url"
+              type="text"
+              value={newBlogUrl}
+              onChange={({ target }) => setNewBlogUrl(target.value)}
+            />
+          </div>
+          <button type="submit">Create</button>
+        </form>
+      </Togglable>
+
+      <h2>Blogs</h2>
+      {blogs.map((blog, index) => (
+        <Blog key={index} blog={blog} />
+      ))}
+    </div>
+  );
+};
+
+export default App;
