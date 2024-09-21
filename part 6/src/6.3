@@ -1,0 +1,119 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { createStore } from 'redux';
+import { Provider, useDispatch, useSelector } from 'react-redux';
+
+// Action Types
+const VOTE = 'VOTE';
+const NEW_ANECDOTE = 'NEW_ANECDOTE';
+
+// Action Creators
+const voteAnecdote = (id) => ({
+  type: VOTE,
+  payload: { id },
+});
+
+const createAnecdote = (content) => ({
+  type: NEW_ANECDOTE,
+  payload: {
+    content,
+    id: Math.floor(Math.random() * 10000), // Random ID for the new anecdote
+    votes: 0,
+  },
+});
+
+// Initial State
+const initialState = [
+  { content: 'If it hurts, do it more often', id: 1, votes: 0 },
+  { content: 'Adding manpower to a late software project makes it later!', id: 2, votes: 0 },
+  { content: 'The first 90 percent of the code accounts for the first 90 percent of the development time. The remaining 10 percent of the code accounts for the other 90 percent of the development time.', id: 3, votes: 0 },
+];
+
+// Reducer
+const anecdoteReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case VOTE:
+      return state.map((anecdote) =>
+        anecdote.id === action.payload.id
+          ? { ...anecdote, votes: anecdote.votes + 1 }
+          : anecdote
+      );
+    case NEW_ANECDOTE:
+      return [...state, action.payload];
+    default:
+      return state;
+  }
+};
+
+// Redux Store
+const store = createStore(anecdoteReducer);
+
+// AnecdoteForm Component - For adding new anecdotes
+const AnecdoteForm = () => {
+  const dispatch = useDispatch();
+
+  const addAnecdote = (event) => {
+    event.preventDefault();
+    const content = event.target.anecdote.value;
+    event.target.anecdote.value = ''; // Clear input field
+    dispatch(createAnecdote(content)); // Dispatch action to add anecdote
+  };
+
+  return (
+    <div>
+      <h2>Create New Anecdote</h2>
+      <form onSubmit={addAnecdote}>
+        <input name="anecdote" />
+        <button type="submit">Add</button>
+      </form>
+    </div>
+  );
+};
+
+// AnecdoteList Component - For listing anecdotes and voting
+const AnecdoteList = () => {
+  const anecdotes = useSelector((state) => state); // Get anecdotes from Redux state
+  const dispatch = useDispatch();
+
+  const handleVote = (id) => {
+    dispatch(voteAnecdote(id)); // Dispatch action to vote
+  };
+
+  return (
+    <div>
+      {anecdotes
+        .sort((a, b) => b.votes - a.votes) // Sort anecdotes by votes in descending order
+        .map((anecdote) => (
+          <div key={anecdote.id}>
+            <div>{anecdote.content}</div>
+            <div>
+              has {anecdote.votes} votes
+              <button onClick={() => handleVote(anecdote.id)}>Vote</button>
+            </div>
+          </div>
+        ))}
+    </div>
+  );
+};
+
+// App Component
+const App = () => {
+  return (
+    <div>
+      <h2>Anecdotes</h2>
+      <AnecdoteList />
+      <AnecdoteForm />
+    </div>
+  );
+};
+
+// Main Component with Redux Provider
+const Main = () => (
+  <Provider store={store}>
+    <App />
+  </Provider>
+);
+
+// Render the application
+ReactDOM.render(<Main />, document.getElementById('root'));
+
