@@ -1,0 +1,125 @@
+import React, { useEffect } from 'react';
+import { configureStore, createSlice } from '@reduxjs/toolkit';
+import { Provider, useDispatch, useSelector } from 'react-redux';
+import { thunk } from 'redux-thunk';
+import axios from 'axios';
+
+// Slice for notifications
+const notificationSlice = createSlice({
+  name: 'notification',
+  initialState: '',
+  reducers: {
+    setNotification: (state, action) => action.payload,
+    clearNotification: () => '',
+  },
+});
+
+const { setNotification: setRawNotification, clearNotification } = notificationSlice.actions;
+
+// Enhanced action creator for setting notification with a timeout
+const setNotification = (message, timeInSeconds) => (dispatch) => {
+  dispatch(setRawNotification(message));
+  setTimeout(() => {
+    dispatch(clearNotification());
+  }, timeInSeconds * 1000);
+};
+
+// Slice for anecdotes
+const anecdotesSlice = createSlice({
+  name: 'anecdotes',
+  initialState: [],
+  reducers: {
+    setAnecdotes: (state, action) => action.payload,
+    addAnecdote: (state, action) => {
+      state.push(action.payload);
+    },
+    voteAnecdote: (state, action) => {
+      const anecdote = state.find((a) => a.id === action.payload.id);
+      if (anecdote) {
+        anecdote.votes += 1;
+      }
+    },
+  },
+});
+
+const { setAnecdotes, addAnecdote: addAnecdoteAction, voteAnecdote: voteAnecdoteAction } = anecdotesSlice.actions;
+
+// Async action creators for fetching and creating anecdotes
+const fetchAnecdotes = () => async (dispatch) => {
+  const response = await axios.get('http://localhost:3001/anecdotes');
+  dispatch(setAnecdotes(response.data));
+};
+
+const createAnecdote = (content) => async (dispatch) => {
+  const response = await axios.post('http://localhost:3001/anecdotes', { content, votes: 0 });
+  dispatch(addAnecdoteAction(response.data));
+  dispatch(setNotification(`New anecdote '${content}' added`, 5));
+};
+
+const voteAnecdote = (anecdote) => async (dispatch) => {
+  const updatedAnecdote = { ...anecdote, votes: anecdote.votes + 1 };
+  const response = await axios.put(`http://localhost:3001/anecdotes/${anecdote.id}`, updatedAnecdote);
+  dispatch(voteAnecdoteAction(response.data));
+  dispatch(setNotification(`You voted for '${anecdote.content}'`, 5));
+};
+
+// Configure store
+const store = configureStore({
+  reducer: {
+    anecdotes: anecdotesSlice.reducer,
+    notification: notificationSlice.reducer,
+  },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(thunk),
+});
+
+// Notification Component
+const Notification = () => {
+  const notification = useSelector((state) => state.notification);
+  return notification ? <div style={{ border: '1px solid black', padding: '10px', margin: '10px 0' }}>{notification}</div> : null;
+};
+
+// App Component
+const App = () => {
+  const dispatch = useDispatch();
+  const anecdotes = useSelector((state) => state.anecdotes);
+
+  useEffect(() => {
+    dispatch(fetchAnecdotes());
+  }, [dispatch]);
+
+  const addAnecdote = () => {
+    const content = prompt('Enter anecdote content:');
+    if (content) {
+      dispatch(createAnecdote(content));
+    }
+  };
+
+  const handleVote = (anecdote) => {
+    dispatch(voteAnecdote(anecdote));
+  };
+
+  return (
+    <div>
+      <Notification />
+      <h1>Anecdotes</h1>
+      <ul>
+        {anecdotes.map((anecdote) => (
+          <li key={anecdote.id}>
+            {anecdote.content} (votes: {anecdote.votes})
+            <button onClick={() => handleVote(anecdote)}>Vote</button>
+          </li>
+        ))}
+      </ul>
+      <button onClick={addAnecdote}>Add Anecdote</button>
+    </div>
+  );
+};
+
+// Root component with Provider
+const Root = () => (
+  <Provider store={store}>
+    <App />
+  </Provider>
+);
+
+export default Root;
