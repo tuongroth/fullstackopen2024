@@ -1,0 +1,103 @@
+import React, { useState } from 'react';
+import BlogForm from './BlogForm';  // Import the BlogForm component
+
+const App = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [user, setUser] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [blogs, setBlogs] = useState([]);
+
+  const handleLogin = (event) => {
+    event.preventDefault();
+    if (username === 'testuser' && password === 'testpassword') {
+      setUser({ username });
+      setErrorMessage('');
+    } else {
+      setErrorMessage('Invalid credentials');
+    }
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setUsername('');
+    setPassword('');
+  };
+
+  const handleCreateBlog = (title, author) => {
+    const newBlog = { title, author, user: user.username, likes: 0 };
+    setBlogs([...blogs, newBlog]);
+  };
+
+  const handleLike = (index) => {
+    const updatedBlogs = [...blogs];
+    updatedBlogs[index].likes += 1;
+    setBlogs(updatedBlogs);
+  };
+
+  const handleDelete = (index) => {
+    const confirmed = window.confirm("Are you sure you want to delete this blog?");
+    if (confirmed) {
+      const updatedBlogs = blogs.filter((_, i) => i !== index);
+      setBlogs(updatedBlogs);
+    }
+  };
+
+  if (user) {
+    return (
+      <div>
+        <h2>{user.username} is logged in</h2>
+        <button onClick={handleLogout}>Logout</button>
+
+        <h3>Create a new blog</h3>
+        {/* Use the BlogForm component and pass the handleCreateBlog function as a prop */}
+        <BlogForm handleCreateBlog={handleCreateBlog} />
+
+        <h3>Blogs</h3>
+        <ul>
+          {blogs.map((blog, index) => (
+            <li key={index}>
+              {blog.title} by {blog.author} - Likes: {blog.likes}
+              <button onClick={() => handleLike(index)} id={`like-button-${index}`}>Like</button>
+              {blog.user === user.username && (
+                <button onClick={() => handleDelete(index)} id={`delete-button-${index}`}>
+                  Delete
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h2>Login to the application</h2>
+      {errorMessage && <div style={{ color: 'red' }}>{errorMessage}</div>}
+      <form onSubmit={handleLogin}>
+        <div>
+          Username
+          <input
+            type="text"
+            value={username}
+            onChange={({ target }) => setUsername(target.value)}
+            id="username"
+          />
+        </div>
+        <div>
+          Password
+          <input
+            type="password"
+            value={password}
+            onChange={({ target }) => setPassword(target.value)}
+            id="password"
+          />
+        </div>
+        <button type="submit" id="login-button">Login</button>
+      </form>
+    </div>
+  );
+};
+
+export default App;
