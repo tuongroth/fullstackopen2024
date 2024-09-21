@@ -1,0 +1,41 @@
+import React, { useState } from 'react'
+
+const App = () => {
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  
+  const handleLogin = (event) => {
+    event.preventDefault()
+    // Perform login (not implemented yet)
+    console.log('Logging in with', { username, password })
+  }
+
+  return (
+    <div>
+      <h2>Login to the application</h2>
+      <form onSubmit={handleLogin}>
+        <div>
+          Username
+          <input 
+            type="text" 
+            value={username} 
+            onChange={({ target }) => setUsername(target.value)} 
+            id="username"
+          />
+        </div>
+        <div>
+          Password
+          <input 
+            type="password" 
+            value={password} 
+            onChange={({ target }) => setPassword(target.value)} 
+            id="password"
+          />
+        </div>
+        <button type="submit" id="login-button">Login</button>
+      </form>
+    </div>
+  )
+}
+
+export default App
