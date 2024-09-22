@@ -1,0 +1,54 @@
+import { ApolloServer } from '@apollo/server';
+import { startStandaloneServer } from '@apollo/server/standalone';
+import { gql } from 'graphql-tag';
+
+// Sample data for books and authors
+const books = [
+  { title: 'Book 1', author: 'Author 1' },
+  { title: 'Book 2', author: 'Author 2' },
+  { title: 'Book 3', author: 'Author 3' },
+  { title: 'Book 4', author: 'Author 4' },
+  { title: 'Book 5', author: 'Author 5' },
+  { title: 'Book 6', author: 'Author 1' },
+  { title: 'Book 7', author: 'Author 2' },
+];
+
+const authors = [
+  { name: 'Author 1' },
+  { name: 'Author 2' },
+  { name: 'Author 3' },
+  { name: 'Author 4' },
+  { name: 'Author 5' },
+];
+
+// Define the GraphQL schema
+const typeDefs = gql`
+  type Query {
+    bookCount: Int
+    authorCount: Int
+  }
+`;
+
+// Define resolvers for the queries
+const resolvers = {
+  Query: {
+    bookCount: () => books.length,
+    authorCount: () => authors.length,
+  },
+};
+
+// Create and start the Apollo GraphQL server
+async function startServer() {
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+  });
+
+  const { url } = await startStandaloneServer(server, {
+    listen: { port: 4000 },
+  });
+
+  console.log(`Server running at ${url}`);
+}
+
+startServer();
