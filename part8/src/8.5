@@ -1,0 +1,138 @@
+import { ApolloServer } from '@apollo/server';
+import { startStandaloneServer } from '@apollo/server/standalone';
+import { gql } from 'graphql-tag';
+
+// Sample data
+const books = [
+  {
+    title: 'Clean Code',
+    author: 'Robert Martin',
+    published: 2008,
+    genres: ['programming', 'refactoring'],
+  },
+  {
+    title: 'Agile Software Development',
+    author: 'Robert Martin',
+    published: 2002,
+    genres: ['programming', 'agile'],
+  },
+  {
+    title: 'Refactoring',
+    author: 'Martin Fowler',
+    published: 1999,
+    genres: ['programming', 'refactoring'],
+  },
+  {
+    title: 'Crime and Punishment',
+    author: 'Fyodor Dostoevsky',
+    published: 1866,
+    genres: ['fiction', 'classic'],
+  },
+  {
+    title: 'The Idiot',
+    author: 'Fyodor Dostoevsky',
+    published: 1869,
+    genres: ['fiction', 'classic'],
+  },
+  {
+    title: 'Implementing Domain-Driven Design',
+    author: 'Vaughn Vernon',
+    published: 2013,
+    genres: ['programming'],
+  },
+  {
+    title: 'Design Patterns',
+    author: 'Erich Gamma',
+    published: 1994,
+    genres: ['programming'],
+  },
+];
+
+// Sample authors
+const authors = [
+  { name: 'Robert Martin' },
+  { name: 'Martin Fowler' },
+  { name: 'Fyodor Dostoevsky' },
+  { name: 'Vaughn Vernon' },
+  { name: 'Erich Gamma' },
+];
+
+// Define the GraphQL schema
+const typeDefs = gql`
+  type Book {
+    title: String!
+    author: String!
+    published: Int!
+    genres: [String!]!
+  }
+
+  type Author {
+    name: String!
+    bookCount: Int!
+  }
+
+  type Query {
+    bookCount: Int
+    authorCount: Int
+    allBooks(author: String, genre: String): [Book!]!
+    allAuthors: [Author!]!
+  }
+`;
+
+// Define resolvers for the queries
+const resolvers = {
+  Query: {
+    // Return the total number of books
+    bookCount: () => books.length,
+
+    // Return the total number of authors
+    authorCount: () => authors.length,
+
+    // Return all books, or filter by author and/or genre if provided
+    allBooks: (root, args) => {
+      let filteredBooks = books;
+
+      // Filter by author if provided
+      if (args.author) {
+        filteredBooks = filteredBooks.filter(
+          (book) => book.author === args.author
+        );
+      }
+
+      // Filter by genre if provided
+      if (args.genre) {
+        filteredBooks = filteredBooks.filter((book) =>
+          book.genres.includes(args.genre)
+        );
+      }
+
+      return filteredBooks;
+    },
+
+    // Return all authors with their bookCount
+    allAuthors: () => {
+      return authors.map((author) => {
+        return {
+          name: author.name,
+          bookCount: books.filter((book) => book.author === author.name).length,
+        };
+      });
+    },
+  },
+};
+
+// Create and start the Apollo GraphQL server
+async function startServer() {
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+  });
+
+  const { url } = await startStandaloneServer(server, {
+    listen: { port: 4000 },
+  });
+
+  console.log(`Server running at ${url}`);
+}
+
+startServer();
