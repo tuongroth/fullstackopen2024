@@ -1,0 +1,98 @@
+import { ApolloServer } from '@apollo/server';
+import { startStandaloneServer } from '@apollo/server/standalone';
+import { gql } from 'graphql-tag';
+
+// Sample data
+const books = [
+  {
+    title: 'Book 1',
+    author: 'Author 1',
+    published: 2000,
+    genres: ['fiction', 'adventure'],
+  },
+  {
+    title: 'Book 2',
+    author: 'Author 2',
+    published: 2005,
+    genres: ['non-fiction', 'self-help'],
+  },
+  {
+    title: 'Book 3',
+    author: 'Author 3',
+    published: 2010,
+    genres: ['fiction', 'fantasy'],
+  },
+  {
+    title: 'Book 4',
+    author: 'Author 4',
+    published: 2015,
+    genres: ['biography', 'history'],
+  },
+  {
+    title: 'Book 5',
+    author: 'Author 5',
+    published: 2020,
+    genres: ['romance', 'fiction'],
+  },
+  {
+    title: 'Book 6',
+    author: 'Author 1',
+    published: 2008,
+    genres: ['fiction', 'mystery'],
+  },
+  {
+    title: 'Book 7',
+    author: 'Author 2',
+    published: 2012,
+    genres: ['science', 'non-fiction'],
+  },
+];
+
+const authors = [
+  { name: 'Author 1' },
+  { name: 'Author 2' },
+  { name: 'Author 3' },
+  { name: 'Author 4' },
+  { name: 'Author 5' },
+];
+
+// Define the GraphQL schema
+const typeDefs = gql`
+  type Book {
+    title: String!
+    author: String!
+    published: Int!
+    genres: [String!]!
+  }
+
+  type Query {
+    bookCount: Int
+    authorCount: Int
+    allBooks: [Book!]!
+  }
+`;
+
+// Define resolvers for the queries
+const resolvers = {
+  Query: {
+    bookCount: () => books.length,
+    authorCount: () => authors.length,
+    allBooks: () => books,
+  },
+};
+
+// Create and start the Apollo GraphQL server
+async function startServer() {
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+  });
+
+  const { url } = await startStandaloneServer(server, {
+    listen: { port: 4000 },
+  });
+
+  console.log(`Server running at ${url}`);
+}
+
+startServer();
