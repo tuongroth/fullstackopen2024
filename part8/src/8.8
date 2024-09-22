@@ -1,0 +1,159 @@
+import React, { useState, useEffect } from 'react';
+
+const App = () => {
+  const [page, setPage] = useState('authors');
+  const [authors, setAuthors] = useState([]);
+  const [books, setBooks] = useState([]);
+  const [newBook, setNewBook] = useState({ title: '', author: '', published: '', genres: [] });
+  const [genreInput, setGenreInput] = useState('');
+
+  // Simulate fetching data from a GraphQL API
+  useEffect(() => {
+    // Simulated author data
+    const fetchedAuthors = [
+      { name: 'Author A', born: 1970, bookCount: 2 },
+      { name: 'Author B', born: 1980, bookCount: 3 },
+    ];
+    setAuthors(fetchedAuthors);
+
+    // Simulated book data
+    const fetchedBooks = [
+      { title: 'Book 1', author: 'Author A', published: 2000 },
+      { title: 'Book 2', author: 'Author B', published: 2010 },
+    ];
+    setBooks(fetchedBooks);
+  }, []);
+
+  const handleNewBookChange = (event) => {
+    const { name, value } = event.target;
+    setNewBook({ ...newBook, [name]: value });
+  };
+
+  const handleGenreAdd = () => {
+    setNewBook((prev) => ({ ...prev, genres: [...prev.genres, genreInput] }));
+    setGenreInput('');
+  };
+
+  const handleNewBookSubmit = (event) => {
+    event.preventDefault();
+    console.log('New book added:', newBook);
+    setNewBook({ title: '', author: '', published: '', genres: [] });
+  };
+
+  return (
+    <div>
+      <div>
+        <button onClick={() => setPage('authors')}>Authors</button>
+        <button onClick={() => setPage('books')}>Books</button>
+        <button onClick={() => setPage('add')}>Add Book</button>
+      </div>
+
+      {page === 'authors' && <Authors authors={authors} />}
+      {page === 'books' && <Books books={books} />}
+      {page === 'add' && (
+        <NewBook
+          newBook={newBook}
+          genreInput={genreInput}
+          onNewBookChange={handleNewBookChange}
+          onGenreAdd={handleGenreAdd}
+          onNewBookSubmit={handleNewBookSubmit}
+        />
+      )}
+    </div>
+  );
+};
+
+const Authors = ({ authors }) => {
+  return (
+    <div>
+      <h2>Authors</h2>
+      <table>
+        <tbody>
+          <tr>
+            <th>Name</th>
+            <th>Born</th>
+            <th>Books</th>
+          </tr>
+          {authors.map((author) => (
+            <tr key={author.name}>
+              <td>{author.name}</td>
+              <td>{author.born}</td>
+              <td>{author.bookCount}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const Books = ({ books }) => {
+  return (
+    <div>
+      <h2>Books</h2>
+      <table>
+        <tbody>
+          <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Published</th>
+          </tr>
+          {books.map((book) => (
+            <tr key={book.title}>
+              <td>{book.title}</td>
+              <td>{book.author}</td>
+              <td>{book.published}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const NewBook = ({ newBook, genreInput, onNewBookChange, onGenreAdd, onNewBookSubmit }) => {
+  return (
+    <div>
+      <h2>Add New Book</h2>
+      <form onSubmit={onNewBookSubmit}>
+        <div>
+          Title
+          <input
+            name="title"
+            value={newBook.title}
+            onChange={onNewBookChange}
+          />
+        </div>
+        <div>
+          Author
+          <input
+            name="author"
+            value={newBook.author}
+            onChange={onNewBookChange}
+          />
+        </div>
+        <div>
+          Published
+          <input
+            type="number"
+            name="published"
+            value={newBook.published}
+            onChange={onNewBookChange}
+          />
+        </div>
+        <div>
+          Genre
+          <input
+            value={genreInput}
+            onChange={(e) => setGenreInput(e.target.value)}
+          />
+          <button type="button" onClick={onGenreAdd}>Add Genre</button>
+        </div>
+        <div>Genres: {newBook.genres.join(', ')}</div>
+        <button type="submit">Create Book</button>
+      </form>
+    </div>
+  );
+};
+
+export default App;
