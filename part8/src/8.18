@@ -1,0 +1,165 @@
+const express = require('express');
+const { ApolloServer, gql } = require('apollo-server-express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = 'your_jwt_secret'; // Replace with a secure secret in production
+
+// Connect to MongoDB
+mongoose.connect('mongodb+srv://fullstack:2r6FcH9cLQRdnXHJ@cluster0.xgr0xci.mongodb.net/?retryWrites=true&w=majority', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+// Define Mongoose schemas
+const bookSchema = new mongoose.Schema({
+  title: { type: String, required: true, minlength: 5 },
+  published: { type: Number, required: true },
+  author: { type: mongoose.Schema.Types.ObjectId, ref: 'Author' },
+  genres: [{ type: String }],
+});
+
+const authorSchema = new mongoose.Schema({
+  name: { type: String, required: true, minlength: 5, unique: true },
+  born: { type: Number },
+});
+
+const userSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true },
+  favoriteGenre: { type: String, required: true },
+});
+
+const Book = mongoose.model('Book', bookSchema);
+const Author = mongoose.model('Author', authorSchema);
+const User = mongoose.model('User', userSchema);
+
+// Define your GraphQL schema
+const typeDefs = gql`
+  type Book {
+    title: String!
+    published: Int!
+    author: Author!
+    genres: [String!]!
+    id: ID!
+  }
+
+  type Author {
+    name: String!
+    id: ID!
+    bookCount: Int!
+  }
+
+  type User {
+    username: String!
+    favoriteGenre: String!
+    id: ID!
+  }
+
+  type Token {
+    value: String!
+  }
+
+  type Query {
+    allBooks(author: String, genre: String): [Book!]!
+    allAuthors: [Author!]!
+    me: User
+  }
+
+  type Mutation {
+    addBook(title: String!, author: String!, published: Int!, genres: [String!]!): Book!
+    editAuthor(name: String!, setBornTo: Int!): Author
+    createUser(username: String!, favoriteGenre: String!): User
+    login(username: String!, password: String!): Token
+  }
+`;
+
+// Define your resolvers
+const resolvers = {
+  Query: {
+    allBooks: async (root, args) => {
+      const filter = {};
+      if (args.author) {
+        const author = await Author.findOne({ name: args.author });
+        filter.author = author ? author._id : null;
+      }
+      return Book.find(filter).populate('author');
+    },
+    allAuthors: async () => {
+      const authors = await Author.find({});
+      return Promise.all(authors.map(async author => ({
+        ...author.toObject(),
+        bookCount: await Book.countDocuments({ author: author._id }),
+      })));
+    },
+    me: (root, args, context) => {
+      return context.currentUser;
+    },
+  },
+  Mutation: {
+    addBook: async (root, args, context) => {
+      if (!context.currentUser) throw new Error("Not authenticated");
+
+      const author = await Author.findOne({ name: args.author });
+      if (!author) throw new Error("Author not found");
+
+      const book = new Book({ ...args, author: author._id });
+      await book.save();
+      return book.populate('author');
+    },
+    createUser: async (root, args) => {
+      const user = new User({ username: args.username, favoriteGenre: args.favoriteGenre });
+      await user.save();
+      return user;
+    },
+    login: async (root, args) => {
+      const user = await User.findOne({ username: args.username });
+      if (!user || args.password !== 'secret') throw new Error("Invalid credentials");
+
+      const token = jwt.sign({ username: user.username, id: user._id }, JWT_SECRET);
+      return { value: token };
+    },
+    editAuthor: async (root, args, context) => {
+      if (!context.currentUser) throw new Error("Not authenticated");
+      const author = await Author.findOne({ name: args.name });
+      if (!author) throw new Error("Author not found");
+
+      author.born = args.setBornTo;
+      await author.save();
+      return author;
+    },
+  },
+};
+
+// Middleware to authenticate users
+const startServer = async () => {
+  const app = express();
+  app.use(cors());
+
+  const server = new ApolloServer({ 
+    typeDefs, 
+    resolvers,
+    context: ({ req }) => {
+      const auth = req.headers.authorization;
+      if (auth && auth.startsWith('Bearer ')) {
+        const token = auth.substring(7);
+        const decodedToken = jwt.verify(token, JWT_SECRET);
+        return { currentUser: decodedToken };
+      }
+      return {};
+    },
+  });
+
+  await server.start();
+  server.applyMiddleware({ app });
+
+  const PORT = 4000;
+  app.listen(PORT, () => {
+    console.log(`Server is running at http://localhost:${PORT}${server.graphqlPath}`);
+  });
+};
+
+// Start the server
+startServer().catch(err => {
+  console.error('Error starting the server:', err);
+});
