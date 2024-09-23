@@ -1,0 +1,160 @@
+import React, { useEffect, useState } from 'react';
+import { ApolloClient, InMemoryCache, ApolloProvider, useQuery, useMutation, gql } from '@apollo/client';
+
+// GraphQL Queries and Mutations
+const GET_BOOKS_BY_GENRE = gql`
+  query GetBooksByGenre($genre: String!) {
+    allBooks(genre: $genre) {
+      title
+      published
+      author {
+        name
+      }
+      genres
+    }
+  }
+`;
+
+const ADD_BOOK = gql`
+  mutation AddBook($title: String!, $author: String!, $published: Int!, $genres: [String!]!) {
+    addBook(title: $title, author: $author, published: $published, genres: $genres) {
+      title
+      published
+      author {
+        name
+      }
+      genres
+    }
+  }
+`;
+
+// Component to display books by genre
+const BooksByGenre = ({ genre }) => {
+  const { loading, error, data } = useQuery(GET_BOOKS_BY_GENRE, {
+    variables: { genre },
+  });
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
+  return (
+    <div>
+      <h2>Books in Genre: {genre}</h2>
+      <ul>
+        {data.allBooks.map((book) => (
+          <li key={book.title}>
+            <strong>{book.title}</strong> by {book.author.name} ({book.published})
+            <br />
+            Genres: {book.genres.join(', ')}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+// Component to add a new book
+const AddBook = ({ genre, onBookAdded }) => {
+  const [title, setTitle] = useState('');
+  const [author, setAuthor] = useState('');
+  const [published, setPublished] = useState('');
+  const [genres, setGenres] = useState('');
+
+  const [addBook] = useMutation(ADD_BOOK, {
+    update(cache, { data: { addBook } }) {
+      const { allBooks } = cache.readQuery({
+        query: GET_BOOKS_BY_GENRE,
+        variables: { genre },
+      });
+
+      cache.writeQuery({
+        query: GET_BOOKS_BY_GENRE,
+        variables: { genre },
+        data: { allBooks: allBooks.concat([addBook]) },
+      });
+    },
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    addBook({ variables: { title, author, published: parseInt(published), genres: genres.split(',') } });
+    onBookAdded();
+    setTitle('');
+    setAuthor('');
+    setPublished('');
+    setGenres('');
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <h2>Add a New Book</h2>
+      <input
+        type="text"
+        placeholder="Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        required
+      />
+      <input
+        type="text"
+        placeholder="Author"
+        value={author}
+        onChange={(e) => setAuthor(e.target.value)}
+        required
+      />
+      <input
+        type="number"
+        placeholder="Published Year"
+        value={published}
+        onChange={(e) => setPublished(e.target.value)}
+        required
+      />
+      <input
+        type="text"
+        placeholder="Genres (comma separated)"
+        value={genres}
+        onChange={(e) => setGenres(e.target.value)}
+        required
+      />
+      <button type="submit">Add Book</button>
+    </form>
+  );
+};
+
+// Main App component
+const App = () => {
+  const [genre, setGenre] = useState('fiction'); // Default genre
+
+  return (
+    <div>
+      <h1>Book List</h1>
+      <label>
+        Select Genre:
+        <select onChange={(e) => setGenre(e.target.value)} value={genre}>
+          <option value="fiction">Fiction</option>
+          <option value="mystery">Mystery</option>
+          <option value="fantasy">Fantasy</option>
+          <option value="non-fiction">Non-Fiction</option>
+          {/* Add more genres as needed */}
+        </select>
+      </label>
+      <BooksByGenre genre={genre} />
+      <AddBook genre={genre} onBookAdded={() => setGenre(genre)} />
+    </div>
+  );
+};
+
+// Apollo Client setup
+const client = new ApolloClient({
+  uri: 'http://localhost:4000', // Adjust if your GraphQL server is on a different URL
+  cache: new InMemoryCache(),
+});
+
+// Render the App
+const Root = () => (
+  <ApolloProvider client={client}>
+    <App />
+  </ApolloProvider>
+);
+
+export default Root;
