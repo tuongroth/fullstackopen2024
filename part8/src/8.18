@@ -1,0 +1,84 @@
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom/client';
+
+const App = () => {
+  const [books, setBooks] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchBooks();
+    }
+  }, [isLoggedIn]);
+
+  const fetchBooks = async () => {
+    try {
+      const response = await fetch('/api/books'); // Replace with your backend endpoint
+      const data = await response.json();
+      setBooks(data);
+    } catch (error) {
+      console.error('Error fetching books:', error);
+    }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    // Replace with your actual login logic
+    if (username === 'user' && password === 'pass') {
+      setIsLoggedIn(true);
+      setUsername('');
+      setPassword('');
+    } else {
+      alert('Invalid credentials');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+  };
+
+  return (
+    <div>
+      <h1>Book List</h1>
+      {isLoggedIn ? (
+        <>
+          <button onClick={handleLogout}>Logout</button>
+          <div>
+            <h2>Your Books</h2>
+            <ul>
+              {books.map((book) => (
+                <li key={book.id}>
+                  <strong>{book.title}</strong> by {book.author}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
+      ) : (
+        <form onSubmit={handleLogin}>
+          <h2>Login</h2>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <button type="submit">Login</button>
+        </form>
+      )}
+    </div>
+  );
+};
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+
+export default App;
