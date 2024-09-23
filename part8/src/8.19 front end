@@ -1,45 +1,110 @@
 import React, { useState, useEffect } from 'react';
-
-// Sample data (replace this with your actual data fetching logic)
-const booksData = [
-  { id: 1, title: "Book One", genres: ["Fiction"] },
-  { id: 2, title: "Book Two", genres: ["Non-Fiction", "Science"] },
-  { id: 3, title: "Book Three", genres: ["Fiction", "Drama"] },
-  { id: 4, title: "Book Four", genres: ["Fantasy"] },
-];
+import ReactDOM from 'react-dom/client';
 
 const App = () => {
-  const [books, setBooks] = useState(booksData);
-  const [selectedGenre, setSelectedGenre] = useState("");
+  const [books, setBooks] = useState([]);
+  const [genres, setGenres] = useState([]);
+  const [selectedGenre, setSelectedGenre] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [favoriteGenre, setFavoriteGenre] = useState('Fiction'); // Default genre
 
-  const genres = Array.from(new Set(books.flatMap(book => book.genres)));
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchGenres();
+      fetchBooksByGenre(favoriteGenre);
+    }
+  }, [isLoggedIn, favoriteGenre]);
 
-  const filteredBooks = selectedGenre 
-    ? books.filter(book => book.genres.includes(selectedGenre))
-    : books;
+  const fetchGenres = async () => {
+    try {
+      const response = await fetch('/api/genres'); // Replace with your backend endpoint
+      const data = await response.json();
+      setGenres(data);
+    } catch (error) {
+      console.error('Error fetching genres:', error);
+    }
+  };
+
+  const fetchBooksByGenre = async (genre) => {
+    try {
+      const response = await fetch(`/api/books?genre=${genre}`); // Adjust according to your backend
+      const data = await response.json();
+      setBooks(data);
+    } catch (error) {
+      console.error('Error fetching books:', error);
+    }
+  };
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (username === 'user' && password === 'pass') {
+      setIsLoggedIn(true);
+      setUsername('');
+      setPassword('');
+    } else {
+      alert('Invalid credentials');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+  };
+
+  const handleGenreChange = (e) => {
+    setFavoriteGenre(e.target.value);
+    fetchBooksByGenre(e.target.value);
+  };
 
   return (
     <div>
       <h1>Book List</h1>
-      <div>
-        <label htmlFor="genre-select">Filter by Genre:</label>
-        <select
-          id="genre-select"
-          onChange={(e) => setSelectedGenre(e.target.value)}
-        >
-          <option value="">All</option>
-          {genres.map(genre => (
-            <option key={genre} value={genre}>{genre}</option>
-          ))}
-        </select>
-      </div>
-      <ul>
-        {filteredBooks.map(book => (
-          <li key={book.id}>{book.title}</li>
-        ))}
-      </ul>
+      {isLoggedIn ? (
+        <>
+          <button onClick={handleLogout}>Logout</button>
+          <h2>Select Your Favorite Genre</h2>
+          <select value={favoriteGenre} onChange={handleGenreChange}>
+            {genres.map((genre) => (
+              <option key={genre} value={genre}>
+                {genre}
+              </option>
+            ))}
+          </select>
+          <div>
+            <h2>Books in {favoriteGenre}</h2>
+            <ul>
+              {books.map((book) => (
+                <li key={book.id}>
+                  <strong>{book.title}</strong> by {book.author}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
+      ) : (
+        <form onSubmit={handleLogin}>
+          <h2>Login</h2>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button type="submit">Login</button>
+        </form>
+      )}
     </div>
   );
 };
 
-export default App;
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
