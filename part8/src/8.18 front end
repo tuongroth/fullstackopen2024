@@ -1,0 +1,45 @@
+import React, { useState, useEffect } from 'react';
+
+// Sample data (replace this with your actual data fetching logic)
+const booksData = [
+  { id: 1, title: "Book One", genres: ["Fiction"] },
+  { id: 2, title: "Book Two", genres: ["Non-Fiction", "Science"] },
+  { id: 3, title: "Book Three", genres: ["Fiction", "Drama"] },
+  { id: 4, title: "Book Four", genres: ["Fantasy"] },
+];
+
+const App = () => {
+  const [books, setBooks] = useState(booksData);
+  const [selectedGenre, setSelectedGenre] = useState("");
+
+  const genres = Array.from(new Set(books.flatMap(book => book.genres)));
+
+  const filteredBooks = selectedGenre 
+    ? books.filter(book => book.genres.includes(selectedGenre))
+    : books;
+
+  return (
+    <div>
+      <h1>Book List</h1>
+      <div>
+        <label htmlFor="genre-select">Filter by Genre:</label>
+        <select
+          id="genre-select"
+          onChange={(e) => setSelectedGenre(e.target.value)}
+        >
+          <option value="">All</option>
+          {genres.map(genre => (
+            <option key={genre} value={genre}>{genre}</option>
+          ))}
+        </select>
+      </div>
+      <ul>
+        {filteredBooks.map(book => (
+          <li key={book.id}>{book.title}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default App;
