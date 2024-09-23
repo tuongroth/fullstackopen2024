@@ -1,0 +1,48 @@
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom/client';
+
+const App = () => {
+  const [books, setBooks] = useState([]);
+  const [genre, setGenre] = useState('All');
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const response = await fetch('/api/books'); // Adjust API endpoint as necessary
+        const data = await response.json();
+        setBooks(data);
+      } catch (error) {
+        console.error("Error fetching books:", error);
+      }
+    };
+
+    fetchBooks();
+  }, []);
+
+  const genres = ['All', 'Fiction', 'Non-Fiction', 'Sci-Fi', 'Biography'];
+
+  const filteredBooks = genre === 'All' ? books : books.filter(book => book.genre === genre);
+
+  return (
+    <div>
+      <h1>Book List</h1>
+      <div>
+        <label>Filter by Genre:</label>
+        <select onChange={(e) => setGenre(e.target.value)} value={genre}>
+          {genres.map((g) => (
+            <option key={g} value={g}>{g}</option>
+          ))}
+        </select>
+      </div>
+      <ul>
+        {filteredBooks.map((book) => (
+          <li key={book.id}>{book.title} - {book.author}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+export default App;
