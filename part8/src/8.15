@@ -3,7 +3,7 @@ const { ApolloServer, gql, UserInputError } = require('apollo-server-express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
-// MongoDB connection
+// Connect to MongoDB
 mongoose.connect('mongodb+srv://fullstack:2r6FcH9cLQRdnXHJ@cluster0.xgr0xci.mongodb.net/?retryWrites=true&w=majority', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -13,44 +13,42 @@ mongoose.connect('mongodb+srv://fullstack:2r6FcH9cLQRdnXHJ@cluster0.xgr0xci.mong
   console.error('MongoDB connection error:', err);
 });
 
-// Author schema
+// Define your Mongoose schemas
 const authorSchema = new mongoose.Schema({
-  name: { type: String, required: true, unique: true, minlength: 3 },
+  name: { type: String, required: true },
   born: { type: Number },
 });
 
-const Author = mongoose.model('Author', authorSchema);
-
-// Book schema
 const bookSchema = new mongoose.Schema({
   title: { type: String, required: true, unique: true, minlength: 5 },
   published: { type: Number },
-  author: { type: mongoose.Schema.Types.ObjectId, ref: 'Author', required: true },
+  author: { type: mongoose.Schema.Types.ObjectId, ref: 'Author' },
   genres: [{ type: String }],
 });
 
+const Author = mongoose.model('Author', authorSchema);
 const Book = mongoose.model('Book', bookSchema);
 
-// GraphQL schema
+// Define your GraphQL schema
 const typeDefs = gql`
   type Author {
-    id: ID!
     name: String!
     born: Int
-    bookCount: Int
+    bookCount: Int!
   }
 
   type Book {
-    id: ID!
     title: String!
     published: Int!
     author: Author!
     genres: [String!]!
+    id: ID!
   }
 
   type Query {
     allBooks(author: String): [Book!]!
     allAuthors: [Author!]!
+    hello: String
   }
 
   type Mutation {
@@ -60,12 +58,11 @@ const typeDefs = gql`
       published: Int!
       genres: [String!]!
     ): Book!
-
     editAuthor(name: String!, setBornTo: Int!): Author
   }
 `;
 
-// Resolvers
+// Define your resolvers
 const resolvers = {
   Query: {
     allBooks: async (_, { author }) => {
@@ -77,11 +74,15 @@ const resolvers = {
     },
     allAuthors: async () => {
       const authors = await Author.find();
-      return authors.map(author => ({
-        ...author.toObject(),
-        bookCount: author._id ? (await Book.countDocuments({ author: author._id })) : 0,
+      return Promise.all(authors.map(async (author) => {
+        const bookCount = await Book.countDocuments({ author: author._id });
+        return {
+          ...author.toObject(),
+          bookCount,
+        };
       }));
     },
+    hello: () => 'Hello world!',
   },
   Mutation: {
     addBook: async (_, { title, author, published, genres }) => {
@@ -119,14 +120,15 @@ const resolvers = {
   },
 };
 
-// Apollo Server setup
+// Create an instance of ApolloServer
 const server = new ApolloServer({ typeDefs, resolvers });
 
 const startServer = async () => {
-  await server.start();
+  await server.start();  // Await server start
   const app = express();
   app.use(cors());
-  server.applyMiddleware({ app });
+
+  server.applyMiddleware({ app }); // Now apply middleware
 
   const PORT = 4000;
   app.listen(PORT, () => {
@@ -134,6 +136,7 @@ const startServer = async () => {
   });
 };
 
+// Start the server
 startServer().catch(err => {
   console.error('Error starting the server:', err);
 });
