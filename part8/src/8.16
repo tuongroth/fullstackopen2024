@@ -1,0 +1,178 @@
+const express = require('express');
+const { ApolloServer, gql } = require('apollo-server-express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
+
+// Connect to MongoDB
+mongoose.connect('mongodb+srv://fullstack:2r6FcH9cLQRdnXHJ@cluster0.xgr0xci.mongodb.net/?retryWrites=true&w=majority', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => {
+  console.log('MongoDB connected successfully');
+}).catch(err => {
+  console.error('MongoDB connection error:', err);
+});
+
+// Define User schema
+const userSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true },
+  favoriteGenre: { type: String, required: true },
+});
+
+const User = mongoose.model('User', userSchema);
+
+// Define Book schema
+const bookSchema = new mongoose.Schema({
+  title: { type: String, required: true, unique: true },
+  published: { type: Number },
+  author: { type: mongoose.Schema.Types.ObjectId, ref: 'Author' },
+  genres: [{ type: String }],
+});
+
+const Book = mongoose.model('Book', bookSchema);
+
+// Define Author schema (assuming it's defined)
+const authorSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  born: { type: Number },
+});
+
+const Author = mongoose.model('Author', authorSchema);
+
+// JWT secret
+const JWT_SECRET = 'your_jwt_secret'; // Replace with your actual secret
+
+// Define your GraphQL schema
+const typeDefs = gql`
+  type User {
+    username: String!
+    favoriteGenre: String!
+    id: ID!
+  }
+
+  type Token {
+    value: String!
+  }
+
+  type Book {
+    title: String!
+    published: Int!
+    author: Author!
+    genres: [String!]!
+    id: ID!
+  }
+
+  type Author {
+    name: String!
+    born: Int
+    bookCount: Int
+    id: ID!
+  }
+
+  type Query {
+    hello: String
+    me: User
+    allBooks: [Book!]!
+    allAuthors: [Author!]!
+  }
+
+  type Mutation {
+    createUser(username: String!, favoriteGenre: String!): User
+    login(username: String!, password: String!): Token
+    addBook(title: String!, author: String!, published: Int!, genres: [String!]!): Book!
+    editAuthor(name: String!, setBornTo: Int!): Author
+  }
+`;
+
+// Define your resolvers
+const resolvers = {
+  Query: {
+    hello: () => 'Hello world!',
+    me: (root, args, context) => {
+      return context.currentUser;
+    },
+    allBooks: async () => {
+      return Book.find({}).populate('author');
+    },
+    allAuthors: async () => {
+      const authors = await Author.find({});
+      return authors.map(author => ({
+        ...author._doc,
+        bookCount: Book.countDocuments({ author: author._id }),
+      }));
+    },
+  },
+  Mutation: {
+    createUser: async (root, args) => {
+      const user = new User({ username: args.username, favoriteGenre: args.favoriteGenre });
+      await user.save();
+      return user;
+    },
+    login: async (root, args) => {
+      const user = await User.findOne({ username: args.username });
+      if (!user) {
+        throw new Error('User not found');
+      }
+      // Assume a hardcoded password check
+      const passwordCorrect = args.password === 'secret'; // Replace with actual password logic
+      if (!passwordCorrect) {
+        throw new Error('Invalid password');
+      }
+      const token = jwt.sign({ username: user.username, id: user._id }, JWT_SECRET);
+      return { value: token };
+    },
+    addBook: async (root, args, context) => {
+      if (!context.currentUser) {
+        throw new AuthenticationError('Not authenticated');
+      }
+      const book = new Book({ ...args });
+      await book.save();
+      return book;
+    },
+    editAuthor: async (root, args, context) => {
+      if (!context.currentUser) {
+        throw new AuthenticationError('Not authenticated');
+      }
+      const author = await Author.findOneAndUpdate(
+        { name: args.name },
+        { born: args.setBornTo },
+        { new: true }
+      );
+      return author;
+    },
+  },
+};
+
+// Create an instance of ApolloServer
+const server = new ApolloServer({ 
+  typeDefs, 
+  resolvers, 
+  context: async ({ req }) => {
+    const auth = req ? req.headers.authorization : null;
+    if (auth && auth.startsWith('Bearer ')) {
+      const token = auth.substring(7);
+      const decodedToken = jwt.verify(token, JWT_SECRET);
+      const currentUser = await User.findById(decodedToken.id);
+      return { currentUser };
+    }
+  }
+});
+
+// Start the server
+const startServer = async () => {
+  const app = express();
+  app.use(cors());
+  await server.start();
+  server.applyMiddleware({ app });
+
+  const PORT = 4000;
+  app.listen(PORT, () => {
+    console.log(`Server is running at http://localhost:${PORT}${server.graphqlPath}`);
+  });
+};
+
+// Start the server
+startServer().catch(err => {
+  console.error('Error starting the server:', err);
+});
