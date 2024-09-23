@@ -1,0 +1,46 @@
+import React, { useState } from 'react';
+
+// Sample book data
+const books = [
+  { id: 1, title: "Book One", genre: "Fiction" },
+  { id: 2, title: "Book Two", genre: "Non-Fiction" },
+  { id: 3, title: "Book Three", genre: "Fiction" },
+  { id: 4, title: "Book Four", genre: "Science" },
+  { id: 5, title: "Book Five", genre: "Fantasy" },
+];
+
+// Available genres
+const genres = ["All", "Fiction", "Non-Fiction", "Science", "Fantasy"];
+
+const BookFilter = () => {
+  const [selectedGenre, setSelectedGenre] = useState("All");
+
+  // Filter books based on selected genre
+  const filteredBooks = selectedGenre === "All"
+    ? books
+    : books.filter(book => book.genre === selectedGenre);
+
+  return (
+    <div>
+      <h1>Book List</h1>
+      <div>
+        {genres.map(genre => (
+          <button 
+            key={genre} 
+            onClick={() => setSelectedGenre(genre)} 
+            style={{ margin: '5px', backgroundColor: selectedGenre === genre ? '#007BFF' : '#f0f0f0' }}
+          >
+            {genre}
+          </button>
+        ))}
+      </div>
+      <ul>
+        {filteredBooks.map(book => (
+          <li key={book.id}>{book.title} ({book.genre})</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default BookFilter;
