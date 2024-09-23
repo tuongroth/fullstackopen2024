@@ -1,0 +1,139 @@
+const express = require('express');
+const { ApolloServer, gql, UserInputError } = require('apollo-server-express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+
+// MongoDB connection
+mongoose.connect('mongodb+srv://fullstack:2r6FcH9cLQRdnXHJ@cluster0.xgr0xci.mongodb.net/?retryWrites=true&w=majority', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => {
+  console.log('MongoDB connected successfully');
+}).catch(err => {
+  console.error('MongoDB connection error:', err);
+});
+
+// Author schema
+const authorSchema = new mongoose.Schema({
+  name: { type: String, required: true, unique: true, minlength: 3 },
+  born: { type: Number },
+});
+
+const Author = mongoose.model('Author', authorSchema);
+
+// Book schema
+const bookSchema = new mongoose.Schema({
+  title: { type: String, required: true, unique: true, minlength: 5 },
+  published: { type: Number },
+  author: { type: mongoose.Schema.Types.ObjectId, ref: 'Author', required: true },
+  genres: [{ type: String }],
+});
+
+const Book = mongoose.model('Book', bookSchema);
+
+// GraphQL schema
+const typeDefs = gql`
+  type Author {
+    id: ID!
+    name: String!
+    born: Int
+    bookCount: Int
+  }
+
+  type Book {
+    id: ID!
+    title: String!
+    published: Int!
+    author: Author!
+    genres: [String!]!
+  }
+
+  type Query {
+    allBooks(author: String): [Book!]!
+    allAuthors: [Author!]!
+  }
+
+  type Mutation {
+    addBook(
+      title: String!
+      author: String!
+      published: Int!
+      genres: [String!]!
+    ): Book!
+
+    editAuthor(name: String!, setBornTo: Int!): Author
+  }
+`;
+
+// Resolvers
+const resolvers = {
+  Query: {
+    allBooks: async (_, { author }) => {
+      const books = await Book.find().populate('author');
+      if (author) {
+        return books.filter(book => book.author.name === author);
+      }
+      return books;
+    },
+    allAuthors: async () => {
+      const authors = await Author.find();
+      return authors.map(author => ({
+        ...author.toObject(),
+        bookCount: author._id ? (await Book.countDocuments({ author: author._id })) : 0,
+      }));
+    },
+  },
+  Mutation: {
+    addBook: async (_, { title, author, published, genres }) => {
+      let authorId = await Author.findOne({ name: author });
+      if (!authorId) {
+        authorId = await new Author({ name: author }).save();
+      }
+
+      const book = new Book({ title, author: authorId._id, published, genres });
+      try {
+        await book.save();
+        return book.populate('author'); // Populate author details
+      } catch (error) {
+        if (error.name === 'ValidationError') {
+          throw new UserInputError('Validation Error', { invalidArgs: error.errors });
+        }
+        throw new Error('Failed to save book');
+      }
+    },
+    editAuthor: async (_, { name, setBornTo }) => {
+      const author = await Author.findOne({ name });
+      if (author) {
+        author.born = setBornTo;
+        try {
+          await author.save();
+        } catch (error) {
+          if (error.name === 'ValidationError') {
+            throw new UserInputError('Validation Error', { invalidArgs: error.errors });
+          }
+          throw new Error('Failed to update author');
+        }
+      }
+      return author;
+    },
+  },
+};
+
+// Apollo Server setup
+const server = new ApolloServer({ typeDefs, resolvers });
+
+const startServer = async () => {
+  await server.start();
+  const app = express();
+  app.use(cors());
+  server.applyMiddleware({ app });
+
+  const PORT = 4000;
+  app.listen(PORT, () => {
+    console.log(`Server is running at http://localhost:${PORT}${server.graphqlPath}`);
+  });
+};
+
+startServer().catch(err => {
+  console.error('Error starting the server:', err);
+});
