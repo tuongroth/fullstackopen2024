@@ -1,0 +1,116 @@
+const express = require('express');
+const { ApolloServer, gql } = require('apollo-server-express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+
+// Connect to MongoDB
+mongoose.connect('mongodb+srv://fullstack:2r6FcH9cLQRdnXHJ@cluster0.xgr0xci.mongodb.net/?retryWrites=true&w=majority', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => {
+  console.log('MongoDB connected successfully');
+})
+.catch(err => {
+  console.error('MongoDB connection error:', err);
+});
+
+// Define Mongoose schemas
+const authorSchema = new mongoose.Schema({
+  name: { type: String, required: true, unique: true },
+  born: { type: Number },
+});
+
+const bookSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  published: { type: Number, required: true },
+  author: { type: mongoose.Schema.Types.ObjectId, ref: 'Author' },
+  genres: [{ type: String }],
+});
+
+// Create Mongoose models
+const Author = mongoose.model('Author', authorSchema);
+const Book = mongoose.model('Book', bookSchema);
+
+// Define your GraphQL schema
+const typeDefs = gql`
+  type Author {
+    id: ID!
+    name: String!
+    born: Int
+    bookCount: Int
+  }
+
+  type Book {
+    id: ID!
+    title: String!
+    published: Int!
+    author: Author!
+    genres: [String!]!
+  }
+
+  type Query {
+    hello: String
+    allBooks: [Book!]!
+    allAuthors: [Author!]!
+  }
+
+  type Mutation {
+    addBook(
+      title: String!
+      author: String!
+      published: Int!
+      genres: [String!]!
+    ): Book!
+    editAuthor(name: String!, setBornTo: Int!): Author
+  }
+`;
+
+// Define your resolvers
+const resolvers = {
+  Query: {
+    hello: () => 'Hello world!',
+    allBooks: async () => {
+      return Book.find({}).populate('author'); // Populate author details
+    },
+    allAuthors: async () => {
+      return Author.find({});
+    },
+  },
+  Mutation: {
+    addBook: async (_, { title, author, published, genres }) => {
+      const authorDoc = await Author.findOne({ name: author });
+      const book = new Book({ title, published, author: authorDoc._id, genres });
+      return book.save();
+    },
+    editAuthor: async (_, { name, setBornTo }) => {
+      const author = await Author.findOneAndUpdate(
+        { name },
+        { born: setBornTo },
+        { new: true }
+      );
+      return author;
+    },
+  },
+};
+
+// Create an instance of ApolloServer
+const server = new ApolloServer({ typeDefs, resolvers });
+
+const startServer = async () => {
+  await server.start();  // Await server start
+  const app = express();
+  app.use(cors());
+
+  server.applyMiddleware({ app }); // Now apply middleware
+
+  const PORT = 4000;
+  app.listen(PORT, () => {
+    console.log(`Server is running at http://localhost:${PORT}${server.graphqlPath}`);
+  });
+};
+
+// Start the server
+startServer().catch(err => {
+  console.error('Error starting the server:', err);
+});
