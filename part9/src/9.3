@@ -1,0 +1,33 @@
+// bmiCalculator.ts
+
+function calculateBmi(heightCm: number, weightKg: number): string {
+  const heightInMeters = heightCm / 100;
+  const bmi = weightKg / (heightInMeters * heightInMeters);
+
+  if (bmi < 18.5) {
+    return 'Underweight';
+  } else if (bmi >= 18.5 && bmi < 24.9) {
+    return 'Normal range';
+  } else if (bmi >= 25 && bmi < 29.9) {
+    return 'Overweight';
+  } else {
+    return 'Obese';
+  }
+}
+
+// Check if there are enough command-line arguments
+if (process.argv.length !== 4) {
+  console.error('Please provide height and weight as command-line arguments, eg. npm run calculateBmi 180 75');
+  process.exit(1);
+}
+
+const height = Number(process.argv[2]);
+const weight = Number(process.argv[3]);
+
+// Validate input
+if (isNaN(height) || isNaN(weight)) {
+  console.error('Both height and weight should be numbers');
+  process.exit(1);
+}
+
+console.log(calculateBmi(height, weight));
