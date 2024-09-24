@@ -1,0 +1,98 @@
+import express, { Request, Response } from 'express';
+
+const app = express();
+const PORT = process.env.PORT || 3003;
+
+// Middleware to parse JSON bodies
+app.use(express.json());
+
+// Root Route
+app.get('/', (req: Request, res: Response) => {
+  res.send('Welcome to the Exercise and BMI Calculator API');
+});
+
+// BMI Endpoint
+app.get('/bmi', (req: Request, res: Response) => {
+  const { height, weight } = req.query;
+
+  if (!height || !weight || isNaN(Number(height)) || isNaN(Number(weight))) {
+    return res.status(400).json({ error: "malformatted parameters" });
+  }
+
+  const heightInMeters = Number(height) / 100;
+  const weightInKg = Number(weight);
+  const bmi = weightInKg / (heightInMeters * heightInMeters);
+  let bmiCategory: string;
+
+  if (bmi < 18.5) {
+    bmiCategory = "Underweight";
+  } else if (bmi < 24.9) {
+    bmiCategory = "Normal range";
+  } else if (bmi < 29.9) {
+    bmiCategory = "Overweight";
+  } else {
+    bmiCategory = "Obese";
+  }
+
+  res.json({
+    weight: weightInKg,
+    height: Number(height),
+    bmi: bmiCategory
+  });
+});
+
+// Exercise Calculator Endpoint
+app.post('/exercises', (req: Request, res: Response) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { daily_exercises, target }: { daily_exercises: any; target: any } = req.body;
+
+  // Check for missing parameters
+  if (!daily_exercises || !target) {
+    return res.status(400).json({ error: "parameters missing" });
+  }
+
+  // Check for malformatted parameters
+  if (!Array.isArray(daily_exercises) || typeof target !== 'number') {
+    return res.status(400).json({ error: "malformatted parameters" });
+  }
+
+  // Check if all daily exercises are numbers
+  for (const exercise of daily_exercises) {
+    if (typeof exercise !== 'number' && isNaN(Number(exercise))) {
+      return res.status(400).json({ error: "malformatted parameters" });
+    }
+  }
+
+  // Calculate the response
+  const periodLength = daily_exercises.length;
+  const trainingDays = daily_exercises.filter(exercise => exercise > 0).length;
+  const average = daily_exercises.reduce((sum, exercise) => sum + exercise, 0) / periodLength;
+  
+  // Determine success and rating
+  const success = average >= target;
+  let rating = 1;
+  let ratingDescription = "bad";
+
+  if (average >= target) {
+    rating = 3;
+    ratingDescription = "good";
+  } else if (average >= target / 2) {
+    rating = 2;
+    ratingDescription = "not too bad but could be better";
+  }
+
+  res.json({
+    periodLength,
+    trainingDays,
+    success,
+    rating,
+    ratingDescription,
+    target,
+    average
+  });
+});
+
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
