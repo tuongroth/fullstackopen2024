@@ -1,0 +1,20 @@
+import express from 'express';
+
+const app = express();
+
+// Define a simple route for the root URL
+app.get('/', (_req, res) => {
+  res.send('Welcome to the Patientor Backend!');
+});
+
+// Define the `/api/ping` route
+app.get('/api/ping', (_req, res) => {
+  res.send('pong');
+});
+
+// Define the port for the server to listen on
+const PORT = 3001;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
