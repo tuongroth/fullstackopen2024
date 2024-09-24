@@ -1,0 +1,62 @@
+import express from 'express';
+
+// BMI calculation function
+const calculateBmi = (height: number, weight: number): string => {
+    const bmi = weight / ((height / 100) ** 2); // height is in cm, convert to meters
+    if (bmi < 18.5) {
+        return "Underweight";
+    } else if (bmi >= 18.5 && bmi < 25) {
+        return "Normal range";
+    } else if (bmi >= 25 && bmi < 30) {
+        return "Overweight";
+    } else {
+        return "Obesity";
+    }
+};
+
+const app = express();
+const PORT = 3000;
+
+// Root endpoint
+app.get('/', (_req, res) => {
+    res.send('Welcome to the BMI Calculator API!');
+});
+
+// Hello endpoint
+app.get('/hello', (_req, res) => {
+    res.send('Hello Full Stack!');
+});
+
+// BMI endpoint
+app.get('/bmi', (req, res) => {
+    const heightParam = req.query.height;
+    const weightParam = req.query.weight;
+
+    // Check if parameters are valid
+    if (typeof heightParam !== 'string' || typeof weightParam !== 'string') {
+        return res.status(400).json({ error: "malformatted parameters" });
+    }
+
+    const height = Number(heightParam);
+    const weight = Number(weightParam);
+
+    // Check for valid numbers
+    if (isNaN(height) || isNaN(weight) || height <= 0 || weight <= 0) {
+        return res.status(400).json({ error: "malformatted parameters" });
+    }
+
+    // Calculate BMI
+    const bmiResult = calculateBmi(height, weight);
+
+    // Send the response back
+    return res.json({
+        weight: weight,
+        height: height,
+        bmi: bmiResult
+    });
+});
+
+// Start the server
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
