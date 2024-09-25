@@ -1,0 +1,27 @@
+import express from 'express';
+import cors from 'cors';
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Sample route for the root URL
+app.get('/', (_req, res) => {
+  res.send('Welcome to the Patientor backend!');
+});
+
+// Define your other routes like /api/diagnoses or /api/patients here
+app.get('/api/diagnoses', (_req, res) => {
+  res.json([
+    { code: 'S03.5', name: 'Sprained neck', latin: 'Distorsio cervicalis' },
+    { code: 'J06.9', name: 'Acute upper respiratory infection', latin: 'Infectio respiratoria acuta' }
+  ]);
+});
+
+// Start the server
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+
