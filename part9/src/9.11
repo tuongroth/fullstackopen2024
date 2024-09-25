@@ -1,0 +1,65 @@
+import express from 'express';
+import cors from 'cors';
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Define the Diagnosis type
+type Diagnosis = {
+  code: string;
+  name: string;
+  latin?: string; // optional field
+};
+
+// Sample diagnoses data
+const diagnoses: Diagnosis[] = [
+  { code: 'D01', name: 'Diagnosis 1' },
+  { code: 'D02', name: 'Diagnosis 2', latin: 'Diagnostica Duo' },
+];
+
+// Define the Patient type
+type Patient = {
+  id: string;
+  name: string;
+  dateOfBirth: string;
+  gender: string; // assuming gender is a string
+  occupation: string;
+  ssn: string; // this will be excluded from the response
+};
+
+// Sample patients data
+const patients: Patient[] = [
+  { id: '1', name: 'John Doe', dateOfBirth: '1990-01-01', gender: 'male', occupation: 'Developer', ssn: '123-45-6789' },
+  { id: '2', name: 'Jane Doe', dateOfBirth: '1992-02-02', gender: 'female', occupation: 'Designer', ssn: '987-65-4321' },
+];
+
+// Utility type to exclude `ssn` from Patient type
+type PublicPatient = Omit<Patient, 'ssn'>;
+
+// GET endpoint for ping
+app.get('/api/ping', (_req, res) => {
+  res.send('pong');
+});
+
+// GET endpoint for diagnoses
+app.get('/api/diagnoses', (_req, res) => {
+  res.json(diagnoses);
+});
+
+// GET endpoint for patients, excluding `ssn`
+app.get('/api/patients', (_req, res) => {
+  const publicPatients: PublicPatient[] = patients.map(({ ssn, ...publicPatient }) => publicPatient);
+  res.json(publicPatients);
+});
+
+// Welcome message at the root
+app.get('/', (_req, res) => {
+  res.send('Welcome to the Patientor backend!');
+});
+
+// Server setup
+const PORT = 3001;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
