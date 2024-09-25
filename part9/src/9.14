@@ -1,0 +1,111 @@
+import express from 'express';
+import cors from 'cors';
+import { v1 as uuid } from 'uuid'; // Ensure this is used correctly
+import { z } from 'zod'; // Ensure this is used correctly
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Define the Diagnosis type
+type Diagnosis = {
+  code: string;
+  name: string;
+  latin?: string; // optional field
+};
+
+// Sample diagnoses data
+const diagnoses: Diagnosis[] = [
+  { code: 'D01', name: 'Diagnosis 1' },
+  { code: 'D02', name: 'Diagnosis 2', latin: 'Diagnostica Duo' },
+];
+
+// Enum for Gender
+enum Gender {
+  Male = 'male',
+  Female = 'female',
+  Other = 'other',
+}
+
+// Define the Patient type
+type Patient = {
+  id: string;
+  name: string;
+  dateOfBirth: string;
+  gender: Gender; // now using enum
+  occupation: string;
+  ssn: string; // this will be excluded from the response
+};
+
+// Sample patients data
+const patients: Patient[] = [
+  { id: '1', name: 'John Doe', dateOfBirth: '1990-01-01', gender: Gender.Male, occupation: 'Developer', ssn: '123-45-6789' },
+  { id: '2', name: 'Jane Doe', dateOfBirth: '1992-02-02', gender: Gender.Female, occupation: 'Designer', ssn: '987-65-4321' },
+];
+
+// Utility type to exclude `ssn` from Patient type
+type PublicPatient = Omit<Patient, 'ssn'>;
+
+// Define Zod schema for validating patient data
+const PatientSchema = z.object({
+  name: z.string(),
+  dateOfBirth: z.string(),
+  gender: z.enum([Gender.Male, Gender.Female, Gender.Other]), // Validate against enum
+  occupation: z.string(),
+  ssn: z.string(),
+});
+
+// GET endpoint for ping
+app.get('/api/ping', (_req, res) => {
+  res.send('pong');
+});
+
+// GET endpoint for diagnoses
+app.get('/api/diagnoses', (_req, res) => {
+  res.json(diagnoses);
+});
+
+// GET endpoint for patients, excluding `ssn`
+app.get('/api/patients', (_req, res) => {
+  const publicPatients: PublicPatient[] = patients.map(({ ssn, ...publicPatient }) => publicPatient);
+  res.json(publicPatients);
+});
+
+// POST endpoint for adding patients
+app.post('/api/patients', (req, res) => {
+  try {
+    // Validate incoming data with Zod schema
+    const patient = PatientSchema.parse(req.body);
+
+    const newPatient: Patient = {
+      id: uuid(), // Using uuid to generate a unique id
+      name: patient.name,
+      dateOfBirth: patient.dateOfBirth,
+      gender: patient.gender, // This is safe due to the validation
+      occupation: patient.occupation,
+      ssn: patient.ssn,
+    };
+
+    patients.push(newPatient);
+
+    // Respond with the newly created patient, excluding the ssn
+    const { ssn: _, ...publicPatient } = newPatient;
+    return res.status(201).json(publicPatient);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors });
+    }
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Welcome message at the root
+app.get('/', (_req, res) => {
+  res.send('Welcome to the Patientor backend!');
+});
+
+// Server setup
+const PORT = 3001;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
