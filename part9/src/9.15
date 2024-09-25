@@ -1,0 +1,141 @@
+// Import necessary libraries
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+
+// Type definitions for course parts
+interface CoursePartBase {
+  name: string;
+  exerciseCount: number;
+}
+
+interface CoursePartBasic extends CoursePartBase {
+  description: string;
+  kind: "basic";
+}
+
+interface CoursePartGroup extends CoursePartBase {
+  groupProjectCount: number;
+  kind: "group";
+}
+
+interface CoursePartBackground extends CoursePartBase {
+  backgroundMaterial: string;
+  kind: "background";
+}
+
+interface CoursePartSpecial extends CoursePartBase {
+  description: string;
+  requirements: string[];
+  kind: "special";
+}
+
+type CoursePart = CoursePartBasic | CoursePartGroup | CoursePartBackground | CoursePartSpecial;
+
+// Sample course parts data
+const courseParts: CoursePart[] = [
+  {
+    name: "Using props to pass data",
+    exerciseCount: 7,
+    description: "Passing data between components",
+    kind: "basic"
+  },
+  {
+    name: "Group Projects",
+    exerciseCount: 3,
+    groupProjectCount: 2,
+    kind: "group"
+  },
+  {
+    name: "Basics of type Narrowing",
+    exerciseCount: 7,
+    description: "How to go from unknown to string",
+    kind: "basic"
+  },
+  {
+    name: "Deeper type usage",
+    exerciseCount: 14,
+    description: "Confusing description",
+    backgroundMaterial: "https://type-level-typescript.com/template-literal-types",
+    kind: "background"
+  },
+  {
+    name: "TypeScript in frontend",
+    exerciseCount: 10,
+    description: "A hard part",
+    kind: "basic"
+  },
+  {
+    name: "Backend development",
+    exerciseCount: 21,
+    description: "Typing the backend",
+    requirements: ["nodejs", "jest"],
+    kind: "special"
+  },
+];
+
+// Part component to render individual course part
+const Part: React.FC<{ part: CoursePart }> = ({ part }) => {
+  switch (part.kind) {
+    case "basic":
+      return (
+        <div>
+          <h3>{part.name}</h3>
+          <p>Exercises: {part.exerciseCount}</p>
+          <p>Description: {part.description}</p>
+        </div>
+      );
+    case "group":
+      return (
+        <div>
+          <h3>{part.name}</h3>
+          <p>Exercises: {part.exerciseCount}</p>
+          <p>Group Projects: {part.groupProjectCount}</p>
+        </div>
+      );
+    case "background":
+      return (
+        <div>
+          <h3>{part.name}</h3>
+          <p>Exercises: {part.exerciseCount}</p>
+          <p>Description: {part.description}</p>
+          <p>Background Material: <a href={part.backgroundMaterial}>{part.backgroundMaterial}</a></p>
+        </div>
+      );
+    case "special":
+      return (
+        <div>
+          <h3>{part.name}</h3>
+          <p>Exercises: {part.exerciseCount}</p>
+          <p>Description: {part.description}</p>
+          <p>Requirements: {part.requirements.join(', ')}</p>
+        </div>
+      );
+    default:
+      return null;
+  }
+};
+
+// Main component to render all course parts
+const Content: React.FC = () => {
+  return (
+    <div>
+      <h2>Course Parts</h2>
+      {courseParts.map((part, index) => (
+        <Part key={index} part={part} />
+      ))}
+    </div>
+  );
+};
+
+// Render the application
+const App: React.FC = () => {
+  return (
+    <div>
+      <Content />
+    </div>
+  );
+};
+
+// Mounting the app to the DOM
+const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
+root.render(<App />);
