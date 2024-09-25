@@ -1,0 +1,55 @@
+// src/App.tsx
+
+import React, { useEffect, useState } from 'react';
+
+// Define a type for the diary entry
+interface DiaryEntry {
+    id: number;
+    title: string;
+    content: string;
+}
+
+const App: React.FC = () => {
+    const [diaries, setDiaries] = useState<DiaryEntry[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Fetch diary entries from the backend
+    const fetchDiaries = async () => {
+        try {
+            const response = await fetch('http://localhost:3000/api/diaries');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data: DiaryEntry[] = await response.json();
+            setDiaries(data);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An error occurred');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchDiaries();
+    }, []);
+
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error}</div>;
+
+    return (
+        <div>
+            <h1>Flight Diaries</h1>
+            <ul>
+                {diaries.map(diary => (
+                    <li key={diary.id}>
+                        <h2>{diary.title}</h2>
+                        <p>{diary.content}</p>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+};
+
+export default App;
