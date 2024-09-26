@@ -1,0 +1,171 @@
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
+const App = () => {
+  const [diaries, setDiaries] = useState([]);
+  const [newEntry, setNewEntry] = useState({
+    title: '',
+    content: '',
+    date: '',
+    weather: '',
+    visibility: '',
+  });
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    // Fetch diary entries from the server
+    const fetchDiaries = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/diaries');
+        setDiaries(response.data);
+      } catch (error) {
+        console.error('Error fetching diaries:', error);
+        setErrorMessage('Could not fetch diary entries.');
+      }
+    };
+    fetchDiaries();
+  }, []);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewEntry({ ...newEntry, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMessage(''); // Reset error message
+
+    try {
+      const response = await axios.post('http://localhost:3001/diaries', newEntry);
+      setDiaries([...diaries, response.data]);
+      setNewEntry({
+        title: '',
+        content: '',
+        date: '',
+        weather: '',
+        visibility: '',
+      });
+    } catch (error) {
+      console.error('Error adding diary entry:', error);
+      setErrorMessage(error.response?.data?.message || 'Failed to add diary entry.');
+    }
+  };
+
+  return (
+    <div>
+      <h1>Diary Entries</h1>
+      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Title:</label>
+          <input
+            type="text"
+            name="title"
+            value={newEntry.title}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <div>
+          <label>Content:</label>
+          <textarea
+            name="content"
+            value={newEntry.content}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <div>
+          <label>Date:</label>
+          <input
+            type="date"
+            name="date"
+            value={newEntry.date}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <div>
+          <label>Weather:</label>
+          <div>
+            <label>
+              <input
+                type="radio"
+                name="weather"
+                value="Sunny"
+                checked={newEntry.weather === 'Sunny'}
+                onChange={handleInputChange}
+                required
+              />
+              Sunny
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="weather"
+                value="Cloudy"
+                checked={newEntry.weather === 'Cloudy'}
+                onChange={handleInputChange}
+                required
+              />
+              Cloudy
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="weather"
+                value="Rainy"
+                checked={newEntry.weather === 'Rainy'}
+                onChange={handleInputChange}
+                required
+              />
+              Rainy
+            </label>
+          </div>
+        </div>
+        <div>
+          <label>Visibility:</label>
+          <div>
+            <label>
+              <input
+                type="radio"
+                name="visibility"
+                value="Good"
+                checked={newEntry.visibility === 'Good'}
+                onChange={handleInputChange}
+                required
+              />
+              Good
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="visibility"
+                value="Poor"
+                checked={newEntry.visibility === 'Poor'}
+                onChange={handleInputChange}
+                required
+              />
+              Poor
+            </label>
+          </div>
+        </div>
+        <button type="submit">Add Diary Entry</button>
+      </form>
+      <h2>All Diary Entries</h2>
+      <ul>
+        {diaries.map(diary => (
+          <li key={diary.id}>
+            <h3>{diary.title}</h3>
+            <p>{diary.content}</p>
+            <p>Date: {diary.date}</p>
+            <p>Weather: {diary.weather}</p>
+            <p>Visibility: {diary.visibility}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default App;
