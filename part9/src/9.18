@@ -1,0 +1,85 @@
+import React, { useState, useEffect } from 'react';
+
+// Define the App component
+function App() {
+  // State for holding diary entries
+  const [diaries, setDiaries] = useState([]);
+  // State for new diary entry form inputs
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+
+  // Fetch all diary entries from the server when the component mounts
+  useEffect(() => {
+    fetch('http://localhost:3001/diaries')
+      .then(response => response.json())
+      .then(data => setDiaries(data))
+      .catch(error => console.error('Error fetching diaries:', error));
+  }, []);
+
+  // Handle form submission for adding a new diary entry
+  const handleAddDiary = (e) => {
+    e.preventDefault();
+
+    const newDiary = {
+      title,
+      content,
+    };
+
+    // Post the new diary entry to the json-server
+    fetch('http://localhost:3001/diaries', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newDiary),
+    })
+      .then(response => response.json())
+      .then(addedDiary => {
+        // Update the state to show the new diary entry
+        setDiaries([...diaries, addedDiary]);
+        setTitle('');
+        setContent('');
+      })
+      .catch(error => console.error('Error adding diary:', error));
+  };
+
+  return (
+    <div>
+      <h1>Diary Entries</h1>
+      
+      {/* Form for adding a new diary entry */}
+      <form onSubmit={handleAddDiary}>
+        <div>
+          <input
+            type="text"
+            value={title}
+            placeholder="Diary Title"
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <textarea
+            value={content}
+            placeholder="Diary Content"
+            onChange={(e) => setContent(e.target.value)}
+            required
+          ></textarea>
+        </div>
+        <button type="submit">Add Diary Entry</button>
+      </form>
+
+      {/* Display all diary entries */}
+      <ul>
+        {diaries.map((diary) => (
+          <li key={diary.id}>
+            <h2>{diary.title}</h2>
+            <p>{diary.content}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default App;
