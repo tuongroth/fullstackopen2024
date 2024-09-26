@@ -1,0 +1,36 @@
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
+const API_URL = 'http://localhost:3001/patients'; // Ensure this URL is correct
+
+const App = () => {
+  const [patients, setPatients] = useState([]);
+
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const response = await axios.get(API_URL);
+        setPatients(response.data);
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+      }
+    };
+
+    fetchPatients();
+  }, []);
+
+  return (
+    <div>
+      <h1>Patient List</h1>
+      <ul>
+        {patients.map((patient) => (
+          <li key={patient.id}>
+            {patient.name} - {patient.occupation}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default App;
