@@ -1,0 +1,79 @@
+// index.js
+const express = require('express');
+const cors = require('cors');
+const app = express();
+const PORT = 3001;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Sample data for patients
+let patients = [
+  {
+    id: "1",
+    name: "John Doe",
+    ssn: "123-45-6789",
+    occupation: "Software Developer",
+    gender: "male",
+    dateOfBirth: "1990-01-01",
+    entries: []
+  },
+  {
+    id: "2",
+    name: "Jane Smith",
+    ssn: "987-65-4321",
+    occupation: "Nurse",
+    gender: "female",
+    dateOfBirth: "1985-05-05",
+    entries: []
+  }
+];
+
+// Define types for Entry, OccupationalHealthcareEntry, and HospitalEntry
+// Note: In a JavaScript file, you don't declare types like in TypeScript, 
+// but we will keep this structure in mind for future use.
+
+class Entry {
+  constructor(id, description, date) {
+    this.id = id;
+    this.description = description;
+    this.date = date;
+  }
+}
+
+class OccupationalHealthcareEntry extends Entry {
+  constructor(id, description, date, employerName) {
+    super(id, description, date);
+    this.type = "OccupationalHealthcare";
+    this.employerName = employerName;
+  }
+}
+
+class HospitalEntry extends Entry {
+  constructor(id, description, date, discharge) {
+    super(id, description, date);
+    this.type = "Hospital";
+    this.discharge = discharge; // { date: string; criteria: string; }
+  }
+}
+
+// API endpoint to get all patients
+app.get('/api/patients', (req, res) => {
+  res.json(patients);
+});
+
+// API endpoint to get a specific patient by ID
+app.get('/api/patients/:id', (req, res) => {
+  const patient = patients.find(p => p.id === req.params.id);
+  if (patient) {
+    res.json(patient);
+  } else {
+    res.status(404).send('Patient not found');
+  }
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
